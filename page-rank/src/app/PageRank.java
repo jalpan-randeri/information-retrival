@@ -1,6 +1,7 @@
 package app;
 
 import model.PageModel;
+import utils.FileWriter;
 import utils.InputReader;
 
 import java.io.IOException;
@@ -12,6 +13,10 @@ import java.util.stream.Stream;
 public class PageRank {
     private static final double DAMPING_FACTOR = 0.85;
     private static final String SEPARATOR = " ";
+    public static final String FILE_PAGE_RANK = "page_rank.txt";
+    public static final String FILE_SORTED_PAGE_RANK = "sorted_page_rank.txt";
+    public static final String FILE_TOP_50_PAGE_ON_PAGE_RANK = "top_50_page_on_page_rank.txt";
+    public static final String FILE_TOP_50_PAGE_ON_INLINK_COUNT = "top_50_page_on_inlink_count.txt";
 
 
     /**
@@ -25,9 +30,12 @@ public class PageRank {
         // calculate size
         long graphSize = InputReader.readInputFile(inputFile).count();
 
+        final double initialRank = 1.0 / graphSize;
+
+
         // initial page rank
-        HashMap<String, Double> pageRank = (HashMap<String, Double>) getInitialPageRank(graphSize,
-                InputReader.readInputFile(inputFile));
+        HashMap<String, Double> pageRank = (HashMap<String, Double>) getInitialPageRank(initialRank,
+                                                                                        InputReader.readInputFile(inputFile));
 
         // find sinks
         Set<String> sinks = getSinks(pageRank.keySet(), InputReader.readInputFile(inputFile));
@@ -38,34 +46,90 @@ public class PageRank {
         // computed page ranks
         HashMap<String, Double> ranks = pagerankHelper(inputFile, pageRank, sinks, outlinks);
 
+        List<PageModel> finalPageRankList = ranks.entrySet()
+                                                 .stream()
+                                                 .map(e -> {
+                                                    PageModel model = new PageModel();
+                                                     model.setPageId(e.getKey());
+                                                     model.setRank(e.getValue());
+                                                     return model;
+                                                 })
+                                                 .collect(Collectors.toList());
+
+        FileWriter.writePageRankFile(FILE_PAGE_RANK, finalPageRankList.stream());
+
+        //NOTE: uncomment this to print output for question - 2
+        printQuestion2Output(inputFile, graphSize, sinks, ranks);
+
+    }
+
+    /**
+     * print question required output
+     * @param inputFile String inputfile
+     * @param graphSize long graph size
+     * @param sinks Set[String] sinks
+     * @param ranks Map[String, Double] pageRank
+     * @throws IOException
+     */
+    private static void printQuestion2Output(String inputFile,
+                                             long graphSize,
+                                             Set<String> sinks,
+                                             HashMap<String, Double> ranks) throws IOException {
         // sort the pages
         List<PageModel> sorted_ranks = ranks.entrySet()
-                                            .parallelStream()
-                                            .sorted((o1, o2) -> o2.getValue().compareTo(o1.getValue()))
-                                            .map(entry -> new PageModel(entry.getKey(), entry.getValue()))
-                                            .collect(Collectors.toList());
+                .parallelStream()
+                .sorted((o1, o2) -> o2.getValue().compareTo(o1.getValue()))
+                .map(entry -> new PageModel(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+        FileWriter.writePageRankFile(FILE_SORTED_PAGE_RANK, sorted_ranks.stream());
 
-
-        // question 1
         // top 50 pages with highest page rank
+        System.out.println("\nTop 50 Page based on Page Rank\n");
         List<PageModel> top50 = sorted_ranks.subList(0, 50);
-        top50.forEach(System.out::println);
+        top50.stream().forEach(System.out::println);
+        FileWriter.writePageRankFile(FILE_TOP_50_PAGE_ON_PAGE_RANK, top50.stream());
 
         // top 50 pages and their pagerank with highest inlinks count
         List<PageModel> top50inlinks = InputReader.readInputFile(inputFile)
                 .map(line -> {
                     String[] page = line.split(SEPARATOR);
+                    List<String> inlinks = Arrays.asList(page);
+                    inlinks = inlinks.subList(1, inlinks.size());
+
                     PageModel model = new PageModel();
                     model.setPageId(page[0]);
                     model.setRank(ranks.get(page[0]));
-                    model.setInlinkCount(page.length - 1);
+                    model.setInlinkCount(inlinks.stream().distinct().count());
+
                     return model;
                 })
                 .sorted((o1, o2) -> o2.getInlinkCount().compareTo(o1.getInlinkCount()))
                 .limit(50)
                 .collect(Collectors.toList());
-        top50inlinks.forEach(page ->
-                System.out.printf("%s   %.20f   %d\n", page.getPageId(), page.getRank(), page.getInlinkCount()));
+
+        System.out.println("\nTop 50 Page based on Inlink Count\n");
+        top50inlinks.stream().forEach(e -> System.out.printf("%s %d\n",e.getPageId(), e.getInlinkCount()));
+        FileWriter.writeInlinkFile(FILE_TOP_50_PAGE_ON_INLINK_COUNT, top50inlinks.stream());
+
+        // sources proportion
+        long source = InputReader.readInputFile(inputFile)
+                                 .filter(line -> line.split(SEPARATOR).length == 1)
+                                 .count();
+        System.out.printf("Source Proportion %.2f\n",((double) source / graphSize));
+
+
+        // sink proportion
+        System.out.printf("Sink Proportion %.2f\n",((double) sinks.size()/ graphSize));
+
+        final double INITIAL_RANK = 1.0 / graphSize;
+        // proportion of pages who's rank is less than initial page rank
+        long lessThanInitialPageRankCount = ranks.entrySet()
+                                                 .parallelStream()
+                                                 .filter(entry ->  entry.getValue() < INITIAL_RANK)
+                                                 .count();
+
+        System.out.printf("Less than initial page rank proportion %.2f\n",
+                (double) lessThanInitialPageRankCount /graphSize);
     }
 
     /**
@@ -83,26 +147,44 @@ public class PageRank {
                                                           Set<String> sinks,
                                                           HashMap<String, Integer> outlinks) throws IOException {
 
-        double perplexity = perplexity(pageRank);
+
         Queue<Double> history = new ArrayDeque<>(4);
 
+        double perplexity = perplexity(pageRank);
+        System.out.printf("Perplexity \t %.20f\n",perplexity);
+
+        // NOTE: Uncomment this for Question 1
+//         int[] printIndexes = new int[]{ 1, 10, 100};
+//         int index = 0;
+
+        // NOTE: condition for question 2
         while (!isConverged(perplexity, history)) {
 
+        // NOTE: condition for question 1
+//        while (index < 100) {
+//            index++;
             final double sink_pagerank = sinks.stream().mapToDouble(pageRank::get).sum();
+
 
             // must be exclusive final
             final HashMap<String, Double> finalPageRank = pageRank;
             pageRank = (HashMap<String, Double>) calculatePageRank(outlinks,
-                    sink_pagerank,
-                    finalPageRank,
-                    InputReader.readInputFile(inputFile));
+                                                                   sink_pagerank,
+                                                                   finalPageRank,
+                                                                   InputReader.readInputFile(inputFile));
 
+            // NOTE: requirement for question 2
             perplexity = perplexity(pageRank);
-            System.out.printf("perplexity = %.10f\n", perplexity);
+            System.out.printf("Perplexity %.20f\n",perplexity);
+
+            // NOTE: required condition for question 1
+//            if(Arrays.binarySearch(printIndexes, index) >= 0){
+//                System.out.println("Iteration "+index);
+//                pageRank.entrySet().stream().forEach(System.out::println);
+//            }
+
         }
 
-
-        // sort
         return pageRank;
     }
 
@@ -120,17 +202,16 @@ public class PageRank {
         history.add(perplexity);
 
         double prev = history.peek();
-        // adjust iteration to -1 coz we are iterating from 0 instead of 1
-        int iteration = -1;
+        int iteration = 0;
         for (double d : history) {
-            if (Math.abs(d - prev) < 1) {
+            if (Math.pow(d - prev, 2) < 1) {
                 iteration++;
             } else {
                 iteration = 0;
             }
             prev = d;
         }
-        return iteration == 3;
+        return iteration == 4;
     }
 
     /**
@@ -148,18 +229,35 @@ public class PageRank {
                                                          Stream<String> input) {
 
 
-        return input.map(line -> {
-                    String[] tokens = line.split(SEPARATOR);
-                    double rank = (1.0 - DAMPING_FACTOR) / pageRank.size();
-                    rank = rank + (sink_pagerank * DAMPING_FACTOR / pageRank.size());
+        return input.map(line -> getPageRankForDocument(outlinks, sink_pagerank, pageRank, line))
+                    .collect(Collectors.toMap(PageModel::getPageId, PageModel::getRank));
+    }
 
-                    for (int i = 1; i < tokens.length; i++) {
-                        rank = rank + (DAMPING_FACTOR * pageRank.get(tokens[i]) / outlinks.get(tokens[i]));
-                    }
+    /**
+     * calculate page rank for document
+     * @param outlinks Map[String, Integer] outlinks
+     * @param sink_pagerank Double sink page rank
+     * @param pageRank Map[String, Double] pageRank
+     * @param document String Document
+     * @return PageModel which contains rank of page
+     */
+    private static PageModel getPageRankForDocument(HashMap<String, Integer> outlinks,
+                                                    double sink_pagerank,
+                                                    HashMap<String, Double> pageRank,
+                                                    String document) {
+        String[] tokens = document.split(SEPARATOR);
+        List<String> inlinks = Arrays.asList(tokens);
+        inlinks = inlinks.subList(1, inlinks.size());
 
-                    return new PageModel(tokens[0], rank);
-                }
-        ).collect(Collectors.toMap(PageModel::getPageId, PageModel::getRank));
+        // compute rank
+        double rank = (1.0 - DAMPING_FACTOR) / pageRank.size();
+        rank = rank + (sink_pagerank * DAMPING_FACTOR / pageRank.size());
+        rank = rank + inlinks.stream()
+                             .distinct()
+                             .mapToDouble(link -> DAMPING_FACTOR * (pageRank.get(link) / outlinks.get(link)))
+                             .sum();
+
+        return new PageModel(tokens[0], rank);
     }
 
     /**
@@ -171,35 +269,46 @@ public class PageRank {
     private static HashMap<String, Integer> getOutlinks(Stream<String> input) {
         HashMap<String, Integer> outlinks = new HashMap<>();
 
-        input.forEach(line -> {
-            String[] tokens = line.split(SEPARATOR);
-            for (int i = 1; i < tokens.length; i++) {
-                String page = tokens[i];
-                if (outlinks.containsKey(page)) {
-                    outlinks.put(page, outlinks.get(page) + 1);
-                } else {
-                    outlinks.put(page, 1);
-                }
-            }
-        });
+        input.forEach(line -> updateOutlinks(outlinks, line));
 
         return outlinks;
     }
 
     /**
+     * update outlink
+     * @param outlinks Map[String, Integer]
+     * @param line String document and inlinks
+     */
+    private static void updateOutlinks(HashMap<String, Integer> outlinks, String line) {
+        String[] tokens = line.split(SEPARATOR);
+        List<String> inlinks = Arrays.asList(tokens);
+        inlinks = inlinks.subList(1, inlinks.size());
+
+        inlinks.stream()
+               .distinct()
+               .forEach(page -> {
+                            if (outlinks.containsKey(page)) {
+                                outlinks.put(page, outlinks.get(page) + 1);
+                            } else {
+                                outlinks.put(page, 1);
+                            }
+               });
+    }
+
+    /**
      * compute initial page rank
      *
-     * @param graphSize long size of graph
+     * @param initialRank double initial rank
      * @param input     Stream of String where each string is unique page
      * @return Map of String, Double as page rank
      */
-    private static Map<String, Double> getInitialPageRank(long graphSize, Stream<String> input) {
+    private static Map<String, Double> getInitialPageRank(double initialRank, Stream<String> input) {
         return input.collect(Collectors.toMap(
                 line -> {
                     int place = line.indexOf(' ');
                     return place != -1 ? line.substring(0, place) : line;
                 },
-                line -> 1.0 / graphSize));
+                line -> initialRank));
     }
 
 
@@ -233,8 +342,8 @@ public class PageRank {
      */
     private static double perplexity(HashMap<String, Double> pageRank) {
         double entropy = pageRank.values()
-                .stream()
-                .mapToDouble(rank -> (rank * (Math.log10(1 / rank) / Math.log10(2))))
+                .parallelStream()
+                .mapToDouble(rank -> (rank * (Math.log(1.0 / rank) / Math.log(2))))
                 .sum();
 
         return Math.pow(2, entropy);

@@ -1,12 +1,10 @@
 package indexer;
 
-import model.DocumentModel;
 import utils.FileUtils;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Indexer will generate inverted indices for search engine
@@ -15,7 +13,7 @@ public class Indexer {
     public static void main(String[] args) throws IOException {
 
         if(args.length == 2) {
-            Map<String, List<DocumentModel>> invertedIndex = getInvertedIndex(args[0]);
+            Map<String, Map<String, Long>> invertedIndex = getInvertedIndex(args[0]);
             invertedIndex.entrySet()
                     .forEach(entry -> {
                         String line = getFlatten(entry);
@@ -25,7 +23,7 @@ public class Indexer {
                             e.printStackTrace();
                         }
                     });
-        }else{
+        } else {
             System.out.println("Usage: input_file output_file");
         }
     }
@@ -35,20 +33,27 @@ public class Indexer {
      * @param entry Map.Entry {docId, inverted index}
      * @return String representation of entry
      */
-    private static String getFlatten(Map.Entry<String, List<DocumentModel>> entry){
-        return String.format("%s %s",entry.getKey(), entry.getValue());
+    private static String getFlatten(Map.Entry<String, Map<String, Long>> entry){
+        StringBuilder builder = new StringBuilder();
+        builder.append(entry.getKey());
+        builder.append("[");
+        for(Map.Entry<String, Long> e : entry.getValue().entrySet()){
+            builder.append(String.format("{%s, %d}, ",e.getKey(), e.getValue()));
+        }
+        builder.append("]");
+        return builder.toString();
     }
 
 
     /**
      * build inverted index from stemmed documents collection
      * @param inputFile String input file
-     * @return Map of Term, List of Document and Frequency
+     * @return Map of {Term, List of Document and Frequency}
      * @throws IOException when input file is not accessible
      */
-    private static Map<String, List<DocumentModel>> getInvertedIndex(String inputFile) throws IOException {
-        HashMap<String, List<DocumentModel>> cache = new HashMap<>();
-        Map<String, Long> termFrequencyCache = getTermFrequency(FileUtils.readFiles(inputFile));
+    private static Map<String, Map<String, Long>> getInvertedIndex(String inputFile) throws IOException {
+        HashMap<String, Map<String, Long>> cache = new HashMap<>();
+
 
         Iterator<String> reader = FileUtils.readFiles(inputFile).iterator();
         String lastDocId = null;
@@ -59,19 +64,24 @@ public class Indexer {
                 lastDocId = line.trim();
 
             }else if(lastDocId != null){
-                DocumentModel document = new DocumentModel(lastDocId, termFrequencyCache.get(lastDocId));
 
                 List<String> terms = getAllTerms(line);
-
                 for(String term : terms){
-                    List<DocumentModel> list;
-                    if(cache.containsKey(term)){
-                        list = cache.get(term);
+                    // if term already present in index
+                    Map<String, Long> index;
+                    if(cache.containsKey(term)) {
+                        index = cache.get(term);
+                        if (index.containsKey(lastDocId)) {
+                            index.put(lastDocId, index.get(lastDocId) + 1L);
+                        } else {
+                            index.put(lastDocId, 1L);
+                        }
                     }else {
-                        list = new ArrayList<>();
+                        index = new HashMap<>();
+                        index.put(lastDocId, 1L);
                     }
-                    list.add(document);
-                    cache.put(term, list);
+                    cache.put(term, index);
+
                 }
 
             }
@@ -92,32 +102,7 @@ public class Indexer {
     }
 
 
-    /**
-     * get term frequency
-     * @param docTerms Stream of document terms where line starts with # contains docId and followed by terms
-     * @return Map of DocId, TermCount
-     */
-    private static Map<String, Long> getTermFrequency(Stream<String> docTerms){
-        HashMap<String, Long> cacheTermFrequency = new HashMap<>();
 
-        Iterator<String> reader = docTerms.iterator();
-        String lastDoc = null;
-        while(reader.hasNext()){
-            String line = reader.next();
-
-            if(isDocument(line)){
-                // add document with 0 term
-                lastDoc = line.trim();
-                cacheTermFrequency.put(lastDoc, 0L);
-
-            }else if(lastDoc != null) {
-                long count = getTotalTermsInDocument(line);
-                cacheTermFrequency.put(lastDoc, cacheTermFrequency.get(lastDoc) + count);
-            }
-        }
-
-        return cacheTermFrequency;
-    }
 
     /**
      * checks validity of documents
@@ -128,16 +113,6 @@ public class Indexer {
         return line.startsWith("#");
     }
 
-    /**
-     * total terms count in given document
-     * @param line String document line
-     * @return long count of all terms
-     */
-    private static long getTotalTermsInDocument(String line) {
-        return Arrays.stream(line.split(" "))
-                     .filter(Indexer::isNotNumber)
-                     .count();
-    }
 
     /**
      * is not Number

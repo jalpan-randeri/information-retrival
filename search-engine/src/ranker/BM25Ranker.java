@@ -5,10 +5,8 @@ import model.InvertedIndex;
 import model.DocumentScore;
 import utils.FileUtils;
 
-import javax.print.Doc;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -17,7 +15,8 @@ import java.util.stream.Stream;
  */
 public class BM25Ranker {
 
-    public static final String SEPARATOR = " ";
+    public static final String SEPARATOR_SPACE = " ";
+    public static final String SEPRATOR_EQUAL = "=";
     private static final double K1 = 1.2;
     public static final double K2 = 100.0;
     public static final double B = 0.75;
@@ -47,7 +46,7 @@ public class BM25Ranker {
         Map<String, Long> documentLength = getAllDocumentsAndLength(invertedIndexFile);
         double avgDocumentLength = documentLength.values()
                                         .parallelStream()
-                                        .mapToLong(l -> l)
+                                        .mapToLong(Long::longValue)
                                         .average()
                                         .getAsDouble();
 
@@ -74,20 +73,18 @@ public class BM25Ranker {
 
         try {
             Stream<String> invertedFile = FileUtils.readFiles(invertedIndexFile);
-
-
             Iterator<String> iterator = invertedFile.iterator();
             while(iterator.hasNext()){
                 String line = iterator.next();
-                InvertedIndex index = Indexer.deserializeEntry(line);
 
-                index.getDocumentFrequency().forEach((doc,length) -> {
-                    if(documentLength.containsKey(doc)){
-                        documentLength.put(doc, documentLength.get(doc) + length);
-                    }else{
-                        documentLength.put(doc, length);
+                if(line.equals(Indexer.DOC_LENGTH_SEPRATOR)) {
+                    // read all docs and length
+                    while(iterator.hasNext()) {
+                        line = iterator.next();
+                        String[] tokens = line.split(SEPRATOR_EQUAL);
+                        documentLength.put(tokens[0], Long.parseLong(tokens[1]));
                     }
-                });
+                }
 
             }
 
@@ -151,7 +148,7 @@ public class BM25Ranker {
 
 
 
-    private static double computeBM25Rank(long N, long R, long ni, long ri, long fi, long qfi, double k1,
+    private static double computeBM25Rank(double N, double R, double ni, double ri, double fi, double qfi, double k1,
                                                        double k2, double b, long dl, double avdl){
         // find term frequency in query
         // calculate score for all documents inside document list
@@ -197,7 +194,7 @@ public class BM25Ranker {
     }
 
 
-    private static double computeK(double k1, double b, long documentLength, double avgDocumentLength){
+    private static double computeK(double k1, double b, double documentLength, double avgDocumentLength){
         /**
          *                             dl
          *  K =  k1(  (1 - b) + b X ------ )
@@ -207,13 +204,13 @@ public class BM25Ranker {
          *  avdl -> average document length
          */
 
-        return k1 * ( (1 - b) + b * (documentLength / avgDocumentLength));
+        return k1 * ( (1 - b) + (b * (documentLength / avgDocumentLength)));
     }
 
 
     private static Map<String, Long> getQueryTermFrequency(String query) {
-        HashMap<String, Long> queryTermFrequency = new HashMap<>();
-        for(String term : query.split(SEPARATOR)){
+        LinkedHashMap<String, Long> queryTermFrequency = new LinkedHashMap<>();
+        for(String term : query.split(SEPARATOR_SPACE)){
             if(queryTermFrequency.containsKey(term)){
                 queryTermFrequency.put(term, queryTermFrequency.get(term) + 1);
             }else{

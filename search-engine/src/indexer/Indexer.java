@@ -6,11 +6,15 @@ import utils.FileUtils;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Indexer will generate inverted indices for search engine
  */
 public class Indexer {
+    public static final String DOC_LENGTH_SEPRATOR = "=================";
+    public static final String SEPRATOR_SPACE = " ";
+
     public static void main(String[] args) throws IOException {
 
         if(args.length == 2) {
@@ -18,16 +22,49 @@ public class Indexer {
             invertedIndex.entrySet()
                     .forEach(entry -> {
                         String line = serializeIndexEntry(entry);
-                        try {
-                            FileUtils.appendToFile(args[1], line);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        FileUtils.appendToFile(args[1], line);
                     });
+
+
+            FileUtils.appendToFile(args[1], DOC_LENGTH_SEPRATOR);
+            Map<String, Long> documentAndLength = getDocumentAndLength(args[0]);
+            documentAndLength.entrySet().forEach(entry -> {
+                String doc = entry.getKey();
+                Long length = entry.getValue();
+                FileUtils.appendToFile(args[1],String.format("%s=%d", doc, length));
+            });
+
         } else {
             System.out.println("Usage: input_file output_file");
         }
     }
+
+
+    private static Map<String, Long> getDocumentAndLength(String stemmedFile) throws IOException {
+        HashMap<String, Long> documentLength = new HashMap<>();
+
+        Stream<String> stemmed = FileUtils.readFiles(stemmedFile);
+        Iterator<String> reader = stemmed.iterator();
+        String lastDocId = null;
+        while(reader.hasNext()){
+            String line = reader.next();
+            if(isDocument(line)){
+                lastDocId =  line.replace('#',' ').trim();
+                documentLength.put(lastDocId, 0L);
+            }else{
+                long length = line.split(SEPRATOR_SPACE).length;
+                if(documentLength.containsKey(lastDocId)) {
+                    documentLength.put(lastDocId, documentLength.get(lastDocId) + length);
+                } else {
+                    documentLength.put(lastDocId, length);
+                }
+            }
+        }
+
+        return documentLength;
+    }
+
+
 
     /**
      * flatten the entry in map
@@ -117,7 +154,7 @@ public class Indexer {
      * @return list of term
      */
     private static List<String> getAllTerms(String line){
-        return Arrays.stream(line.split(" "))
+        return Arrays.stream(line.split(SEPRATOR_SPACE))
                      .filter(Indexer::isNotNumber)
                      .collect(Collectors.toList());
     }

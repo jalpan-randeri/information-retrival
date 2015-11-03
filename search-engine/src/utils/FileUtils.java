@@ -40,10 +40,15 @@ public class FileUtils {
      * @param filename String file name
      * @param content  String content line
      */
-    public static void appendToFile(String filename, String content) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true));
-        writer.append(content);
-        writer.newLine();
-        writer.close();
+    public static void appendToFile(String filename, String content) {
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(new FileWriter(filename, true));
+            writer.append(content);
+            writer.newLine();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

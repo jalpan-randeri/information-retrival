@@ -42,8 +42,8 @@ public class FileUtils {
      */
     public static void appendToFile(String filename, String content) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true));
-        writer.newLine();
         writer.append(content);
+        writer.newLine();
         writer.close();
     }
 }

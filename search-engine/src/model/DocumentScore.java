@@ -28,4 +28,20 @@ public class DocumentScore {
     public void setScore(double score) {
         this.score = score;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DocumentScore score = (DocumentScore) o;
+
+        return !(documentId != null ? !documentId.equals(score.documentId) : score.documentId != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return documentId != null ? documentId.hashCode() : 0;
+    }
 }

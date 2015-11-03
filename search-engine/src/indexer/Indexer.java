@@ -1,5 +1,6 @@
 package indexer;
 
+import model.InvertedIndex;
 import utils.FileUtils;
 
 import java.io.IOException;
@@ -16,7 +17,7 @@ public class Indexer {
             Map<String, Map<String, Long>> invertedIndex = getInvertedIndex(args[0]);
             invertedIndex.entrySet()
                     .forEach(entry -> {
-                        String line = getFlatten(entry);
+                        String line = serializeIndexEntry(entry);
                         try {
                             FileUtils.appendToFile(args[1], line);
                         } catch (IOException e) {
@@ -33,16 +34,36 @@ public class Indexer {
      * @param entry Map.Entry {docId, inverted index}
      * @return String representation of entry
      */
-    private static String getFlatten(Map.Entry<String, Map<String, Long>> entry){
+    public static String serializeIndexEntry(Map.Entry<String, Map<String, Long>> entry){
         StringBuilder builder = new StringBuilder();
         builder.append(entry.getKey());
         builder.append("[");
         for(Map.Entry<String, Long> e : entry.getValue().entrySet()){
-            builder.append(String.format("{%s, %d}, ",e.getKey(), e.getValue()));
+            builder.append(String.format("%s=%d ",e.getKey(), e.getValue()));
         }
         builder.append("]");
         return builder.toString();
     }
+
+
+    /**
+     * Deserialized string into inverted index entry
+     * @param serializedEntry String serialized form of inverted index
+     * @return Inverted Index entry
+     */
+    public static InvertedIndex deserializeEntry(String serializedEntry){
+        String term = serializedEntry.substring(0, serializedEntry.indexOf('[')).trim();
+        String entry = serializedEntry.substring(serializedEntry.indexOf('['));
+        entry = entry.replace('[',' ').replace(']',' ').trim();
+        String[] indices = entry.split(" ");
+        Map<String, Long> map = Arrays.stream(indices)
+                                      .map(index -> index.split("="))
+                                      .collect(Collectors.toMap(tokens -> tokens[0],
+                                              tokens -> Long.parseLong(tokens[1])));
+
+        return new InvertedIndex(term, map);
+    }
+
 
 
     /**
@@ -52,7 +73,7 @@ public class Indexer {
      * @throws IOException when input file is not accessible
      */
     private static Map<String, Map<String, Long>> getInvertedIndex(String inputFile) throws IOException {
-        HashMap<String, Map<String, Long>> cache = new HashMap<>();
+        Map<String, Map<String, Long>> cache = new TreeMap<>();
 
 
         Iterator<String> reader = FileUtils.readFiles(inputFile).iterator();
@@ -61,7 +82,7 @@ public class Indexer {
             String line = reader.next();
 
             if(isDocument(line)){
-                lastDocId = line.trim();
+                lastDocId = line.replace('#',' ').trim();
 
             }else if(lastDocId != null){
 
@@ -77,7 +98,7 @@ public class Indexer {
                             index.put(lastDocId, 1L);
                         }
                     }else {
-                        index = new HashMap<>();
+                        index = new TreeMap<>();
                         index.put(lastDocId, 1L);
                     }
                     cache.put(term, index);

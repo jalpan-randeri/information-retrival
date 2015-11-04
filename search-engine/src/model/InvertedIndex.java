@@ -3,7 +3,9 @@ package model;
 import java.util.Map;
 
 /**
- *
+ * Inverted Index contains
+ *  - word / term
+ *  - map of Document id -> term frequency
  */
 public class InvertedIndex {
     private String term;

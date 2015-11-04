@@ -1,7 +1,9 @@
 package model;
 
 /**
- *
+ * Document score contains
+ * - document id
+ * - score of document
  */
 public class DocumentScore {
     private String documentId;

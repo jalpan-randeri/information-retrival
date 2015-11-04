@@ -22,23 +22,32 @@ public class BM25Ranker {
     public static final double B = 0.75;
 
     public static void main(String[] args) throws IOException {
-        if(args.length == 2){
+        if(args.length == 3){
+            long limit = Long.parseLong(args[2]);
             Map<String, List<DocumentScore>> scores = getQueryRank(args[0], args[1]);
-            scores.entrySet()
-                  .stream()
-                  .forEach(entry -> {
-                      String query = entry.getKey();
-                      List<DocumentScore> scoreList = entry.getValue();
 
-                      scoreList.stream()
-                              .limit(10)
-                              .forEach(doc -> System.out.printf("%s  %s  %f\n",query, doc.getDocumentId(), doc.getScore()));
 
-                  });
+            printOnConsole(scores, limit);
+
         }else{
-            System.out.println("Usage: BM25Ranker query_file index_file");
+            System.out.println("Usage: BM25Ranker query_file index_file doc_limit");
         }
 
+    }
+
+
+
+    private static void printOnConsole(Map<String, List<DocumentScore>> docScore, long limit){
+        System.out.printf("query_id  Q0  doc_id  rank   BM25_score  system_name %n");
+        int index = 1;
+        for(List<DocumentScore> scoredDocs : docScore.values()){
+            for(int count = 1; count <= limit; count++) {
+                DocumentScore doc = scoredDocs.get(count - 1);
+                System.out.printf("%-9d Q0  %-6s %5d   %-10.6f  %s %n", index, doc.getDocumentId(),
+                        count, doc.getScore(), System.getProperty("user.name"));
+            }
+            index++;
+        }
     }
 
 

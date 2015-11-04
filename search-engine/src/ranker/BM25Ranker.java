@@ -97,9 +97,9 @@ public class BM25Ranker {
         try {
             Stream<String> invertedFile = FileUtils.readFiles(invertedIndexFile);
             Iterator<String> iterator = invertedFile.iterator();
+
             while(iterator.hasNext()){
                 String line = iterator.next();
-
                 // skip till the separator
                 if(line.equals(Indexer.DOC_LENGTH_SEPRATOR)) {
                     // read all docs and length

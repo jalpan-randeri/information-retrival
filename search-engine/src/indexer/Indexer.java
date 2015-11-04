@@ -3,6 +3,7 @@ package indexer;
 import model.InvertedIndex;
 import utils.FileUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -12,12 +13,19 @@ import java.util.stream.Stream;
  * Indexer will generate inverted indices for search engine
  */
 public class Indexer {
-    public static final String DOC_LENGTH_SEPRATOR = "=================";
+    public static final String DOC_LENGTH_SEPRATOR = "#############################";
     public static final String SEPRATOR_SPACE = " ";
 
     public static void main(String[] args) throws IOException {
 
         if(args.length == 2) {
+
+            File file = new File(args[1]);
+            if(file.exists()){
+                file.delete();
+            }
+
+
             Map<String, Map<String, Long>> invertedIndex = getInvertedIndex(args[0]);
             invertedIndex.entrySet()
                     .forEach(entry -> {

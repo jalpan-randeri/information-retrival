@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 public class BM25Ranker {
 
     public static final String SEPARATOR_SPACE = " ";
-    public static final String SEPRATOR_EQUAL = "=";
+    public static final String SEPARATOR_EQUAL = "=";
     private static final double K1 = 1.2;
     public static final double K2 = 100.0;
     public static final double B = 0.75;
@@ -94,7 +94,7 @@ public class BM25Ranker {
                     // read all docs and length
                     while(iterator.hasNext()) {
                         line = iterator.next();
-                        String[] tokens = line.split(SEPRATOR_EQUAL);
+                        String[] tokens = line.split(SEPARATOR_EQUAL);
                         documentLength.put(tokens[0], Long.parseLong(tokens[1]));
                     }
                 }
@@ -210,13 +210,13 @@ public class BM25Ranker {
         // Note:
         /**
          *
-         *                   (ri + 0.5)
-         *               ----------------
-         *                 (R - ri + 0.5)              (k1 + 1) fi     (k2 + 1) qfi
-         *  SUM  Log ----------------------------- X -------------- X --------------
-         *  i->Q           (ni - ri + 0.5)               K + fi          k2 + qfi
-         *             -------------------------
-         *              (N - ni - R + ri + 0.5)
+         *                                                            (ri + 0.5)
+         *                                                         ----------------
+         *            (k1 + 1) fi     (k2 + 1) qfi                  (R - ri + 0.5)
+         *  SUM    -------------- X --------------   X   Log {-----------------------------}
+         *  i->Q        K + fi          k2 + qfi                    (ni - ri + 0.5)
+         *                                                     -------------------------
+         *                                                     (N - ni - R + ri + 0.5)
          *
          *
          *  N   -> Total number of documents in collection
@@ -234,17 +234,16 @@ public class BM25Ranker {
          *  K   -> length normalization parameter
          *
          */
-
-
         double K = computeK(k1, b, dl, avdl);
-
-        double firstNumerator = ((ri + 0.5) / (R - ri + 0.5));
-        double firstDivider = (ni - ri + 0.5) / (N - ni - R + ri + 0.5);
 
         double frequencyPart = ((k1 + 1) * fi) / (K + fi);
         double queryFreqPart = ((k2 + 1) * qfi) / (k2 + qfi);
 
-        return Math.log((firstNumerator / firstDivider) * frequencyPart * queryFreqPart);
+        // log part
+        double firstNumerator = ((ri + 0.5) / (R - ri + 0.5));
+        double firstDivider = (ni - ri + 0.5) / (N - ni - R + ri + 0.5);
+
+        return frequencyPart * queryFreqPart * Math.log((firstNumerator / firstDivider));
 
     }
 

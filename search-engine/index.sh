@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-read INPUT
-read OUTPUT
-java out/indexer.Indexer INPUT OUTPUT
+javac src/model/*.java src/utils/*.java  src/indexer/*.java -d out/
+cd out
+java indexer.Indexer ../$1 ../$2

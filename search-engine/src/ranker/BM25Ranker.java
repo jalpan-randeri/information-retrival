@@ -25,8 +25,6 @@ public class BM25Ranker {
         if(args.length == 3){
             long limit = Long.parseLong(args[2]);
             Map<String, List<DocumentScore>> scores = getQueryRank(args[0], args[1]);
-
-
             printOnConsole(scores, limit);
 
         }else{
@@ -36,7 +34,11 @@ public class BM25Ranker {
     }
 
 
-
+    /**
+     * print values on console
+     * @param docScore Map of query and document scores
+     * @param limit long limit of print output
+     */
     private static void printOnConsole(Map<String, List<DocumentScore>> docScore, long limit){
         System.out.printf("query_id  Q0  doc_id  rank   BM25_score  system_name %n");
         int index = 1;
@@ -58,7 +60,7 @@ public class BM25Ranker {
      * @return Map of Query and list of ranked document in decreasing sorted fashion
      * @throws IOException
      */
-    private static Map<String, List<DocumentScore>> getQueryRank(String queryDocument, String invertedIndexFile) throws IOException {
+    private static Map<String, List<DocumentScore>> getQueryRank(String invertedIndexFile, String queryDocument) throws IOException {
         // get all documents and their respective length
         Map<String, Long> documentLength = getAllDocumentsAndLength(invertedIndexFile);
         double avgDocumentLength = documentLength.values()
@@ -155,19 +157,17 @@ public class BM25Ranker {
                     int ni = invertedIndex.getDocumentFrequency().keySet().size();
 
                     // calculate score for each term
-                    List<DocumentScore> documentScores = docTermFreq.entrySet()
-                                                            .stream()
-                                                            .map(docEntry -> {
-                                                                    String docName = docEntry.getKey();
+                    return docTermFreq.entrySet()
+                                      .stream()
+                                      .map(docEntry -> {
+                                            String docName = docEntry.getKey();
+                                            long fi = docEntry.getValue();
+                                            long dl = documentLength.get(docName);
+                                            double currentScore = computeBM25Score(N, R, ni, ri, fi, qfi, K1, K2, B, dl, avgDocumentLength);
+                                            return new DocumentScore(docName, currentScore);
+                                      })
+                                      .collect(Collectors.toList());
 
-                                                                long fi = docEntry.getValue();
-                                                                long dl = documentLength.get(docName);
-
-                                                                double currentScore = computeBM25Score(N, R, ni, ri, fi, qfi, K1, K2, B, dl, avgDocumentLength);
-
-                                                                return new DocumentScore(docName, currentScore);
-                                                            }).collect(Collectors.toList());
-                    return documentScores;
                 }).collect(Collectors.toList());
 
 
@@ -214,9 +214,8 @@ public class BM25Ranker {
      */
     private static double computeBM25Score(double N, double R, double ni, double ri, double fi, double qfi, double k1,
                                            double k2, double b, long dl, double avdl){
-        // find term frequency in query
-        // calculate score for all documents inside document list
-        // Note:
+
+        // Note: Formula for BM25 score
         /**
          *
          *                                                            (ri + 0.5)

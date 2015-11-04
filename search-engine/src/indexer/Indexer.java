@@ -39,7 +39,12 @@ public class Indexer {
         }
     }
 
-
+    /**
+     * get document and their corresponding length
+     * @param stemmedFile String stemmed file path
+     * @return Map of Document -> Length
+     * @throws IOException
+     */
     private static Map<String, Long> getDocumentAndLength(String stemmedFile) throws IOException {
         HashMap<String, Long> documentLength = new HashMap<>();
 
@@ -52,7 +57,7 @@ public class Indexer {
                 lastDocId =  line.replace('#',' ').trim();
                 documentLength.put(lastDocId, 0L);
             }else{
-                long length = line.split(SEPRATOR_SPACE).length;
+                long length = Arrays.stream(line.split(SEPRATOR_SPACE)).filter(Indexer::isNotNumber).count();
                 if(documentLength.containsKey(lastDocId)) {
                     documentLength.put(lastDocId, documentLength.get(lastDocId) + length);
                 } else {

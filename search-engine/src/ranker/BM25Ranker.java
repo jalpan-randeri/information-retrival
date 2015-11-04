@@ -46,7 +46,7 @@ public class BM25Ranker {
             for(int count = 1; count <= limit; count++) {
                 DocumentScore doc = scoredDocs.get(count - 1);
                 System.out.printf("%-9d Q0  %-6s %5d   %-10.6f  %s %n", index, doc.getDocumentId(),
-                        count, doc.getScore(), System.getProperty("user.name"));
+                        count, doc.getScore(), "jalpan");
             }
             index++;
         }

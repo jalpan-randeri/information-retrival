@@ -13,8 +13,8 @@ import java.util.stream.Stream;
  * Indexer will generate inverted indices for search engine
  */
 public class Indexer {
-    public static final String DOC_LENGTH_SEPRATOR = "#############################";
-    public static final String SEPRATOR_SPACE = " ";
+    public static final String DOC_LENGTH_SEPARATOR = "#############################";
+    public static final String SEPARATOR_SPACE = " ";
 
     public static void main(String[] args) throws IOException {
 
@@ -34,7 +34,7 @@ public class Indexer {
                     });
 
 
-            FileUtils.appendToFile(args[1], DOC_LENGTH_SEPRATOR);
+            FileUtils.appendToFile(args[1], DOC_LENGTH_SEPARATOR);
             Map<String, Long> documentAndLength = getDocumentAndLength(args[0]);
             documentAndLength.entrySet().forEach(entry -> {
                 String doc = entry.getKey();
@@ -65,7 +65,7 @@ public class Indexer {
                 lastDocId =  line.replace('#',' ').trim();
                 documentLength.put(lastDocId, 0L);
             }else{
-                long length = Arrays.stream(line.split(SEPRATOR_SPACE)).filter(Indexer::isNotNumber).count();
+                long length = Arrays.stream(line.split(SEPARATOR_SPACE)).filter(Indexer::isNotNumber).count();
                 if(documentLength.containsKey(lastDocId)) {
                     documentLength.put(lastDocId, documentLength.get(lastDocId) + length);
                 } else {
@@ -167,7 +167,7 @@ public class Indexer {
      * @return list of term
      */
     private static List<String> getAllTerms(String line){
-        return Arrays.stream(line.split(SEPRATOR_SPACE))
+        return Arrays.stream(line.split(SEPARATOR_SPACE))
                      .filter(Indexer::isNotNumber)
                      .collect(Collectors.toList());
     }

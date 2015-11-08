@@ -1,0 +1,123 @@
+Implementation Description
+
+1. Indexing
+1.1 Data structures:
+		The input file is in following format:
+		# doc_id
+		token token token token number
+	
+		I have used the following datastructure to store inverted index in file
+		Map< word, Map< doc_id, count_word_in_doc_id >>
+		where 
+		- word is stored as String
+		- doc_id is stored as String
+		- count_word_in_doc_id is stored as long
+
+1.2 Implementation psuedocode:
+    getInvertedIndex(input_file):
+        map = Map<String, Map<String, Long>>
+        while(end of file){
+ 					line = readLine(file)
+ 					if(line is document id)
+ 						store doc_id in last_document_id
+ 				  else
+ 				    list<String> terms = getValidTerms(line)		
+ 				    for each term in terms:
+ 				      int frequency = getFrequency
+	    	      if term already present in map
+	    	         add document and frequency in map
+	    	      else 
+	    	         add new entry term, {last_doc_id, frequency}   
+        }
+     		return map
+
+
+    Explanation: 
+    Given input file is read line by line.
+    for each line we will check if line is document id or not?
+    if it is document id then we will store the document id into variable last_doc_id
+    if it is not document id then we will pass the line to find all valid terms. Now 
+    for each valid terms in this list, we will find frequncy of term in document and 
+    add this into hashmap in following fashion
+    There are 3 scenarios, 
+    1. term is not present in map
+       - create new entry in map where key -> term and value -> map{last_doc_id, frequency}
+    2. term is present but document is not present in value
+       - get the map value for key-> term, and insert new value in map{last_doc_id, frequency}
+    3. term is present and document is also present in value
+       - get the map value for key -> term and then get the map value of key -> last_doc_id, 
+         update the value of last_doc_id by adding frequency in value and put it again in map
+
+    Hence in this manner at the end of input file we will have index structure ready to be written
+    in following manner. 
+    word[doc_id=frequency doc_id=frequency....]      
+    
+    Inorder to improve performance of search in index format I used TreeMap, instead of HashMap
+    which gurentees that it will store the key is sorted fashion, which helps me improving the 
+    search in later part. Also I used LinkedHashMap in value of TreeMap so that I will again 
+    be easier if want to find intersection of two terms documents.
+
+    Once datastructure is ready we will write it down in file in the format discussed above.
+
+2. Scoring
+	2.1 Data structures:
+	    1. Document score, contians 
+	         - document_id   as String
+	         - score         as double
+	    2. Map<Query, List<DocumentScore>> final_result_scored documents for each query
+
+	2.2 Implementaiton: 
+      psuedocode:
+      getDocumentScoreForQuery(query, inverted_index_file):
+      	List<DocumentScore> score_list;
+      	for each term in query:
+      	    Map<String, Long> inverted_index = getInvertedIndex(inverted_index_file, term);
+      	    List<DocumentScore> docs = getDocsAndScore(term, inverted_index)
+
+      	    for each document in docs: 
+      	    		if document is present in score_list 
+      	    		     update score of document by adding both score
+      	    		else
+      	    		     add document into score_list     
+
+		     return score_list;
+
+      Explanation:
+      First read queries.txt line by line, for each line in queries.txt we seprate the query terms
+      form query by splitting on white space. Once we have a query term we will search for 
+      corrosponding query into inverted index file, by scanning file from top-bottom.
+      once we have this inverted index we will converte the line into Map<doc_id, count>.
+      We call it as inverted_index for term. We collect this list for each query term and 
+      then we compute the score bm25 using the following formulla. Once we have the score for
+      each document for each term we combine these seprate list into one list. We will have some
+      documents which are ocurring more than once in this list, so we will add the score of this kind of
+      documents and the return the combined list. BM25 score is calcualted using following formulla.
+
+                                                                      (ri + 0.5)
+                                                                   ----------------
+                      (k1 + 1) fi     (k2 + 1) qfi                  (R - ri + 0.5)
+            SUM    -------------- X --------------   X   Log {-----------------------------}
+            i->Q        K + fi          k2 + qfi                    (ni - ri + 0.5)
+                                                               -------------------------
+                                                               (N - ni - R + ri + 0.5)
+          
+            N   -> Total number of documents in collection
+            R   -> Total number of document in Relevant collection
+            ni  -> Total number of document containing ith term
+            ri  -> Total number of document in relevant collection containing ith term
+            fi  -> Frequency of ith term in Document
+            qfi -> Frequency of ith term in query
+            k1  -> parameter
+            k2  -> parameter
+            b   -> parameter
+            K   -> length normalization parameter
+         
+      formulla for K is 
+       
+                                       dl
+            K =  k1(  (1 - b) + b X ------ )
+                                      avdl
+          
+            dl   ->   document length
+            avdl -> average document length
+         

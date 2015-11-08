@@ -101,7 +101,7 @@ public class BM25Ranker {
             while(iterator.hasNext()){
                 String line = iterator.next();
                 // skip till the separator
-                if(line.equals(Indexer.DOC_LENGTH_SEPRATOR)) {
+                if(line.equals(Indexer.DOC_LENGTH_SEPARATOR)) {
                     // read all docs and length
                     while(iterator.hasNext()) {
                         line = iterator.next();

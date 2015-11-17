@@ -19,8 +19,6 @@ public class AlphaNumericTokenizer extends CharTokenizer {
     @Override
     protected boolean isTokenChar(int c) {
         return Character.isDigit(c)
-                || Character.isAlphabetic(c)
-                || (char) c == '>'
-                || (char) c == '<';
+                || Character.isAlphabetic(c);
     }
 }

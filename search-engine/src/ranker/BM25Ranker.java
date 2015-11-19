@@ -25,6 +25,7 @@ public class BM25Ranker {
         if(args.length == 3){
             long limit = Long.parseLong(args[2]);
             Map<String, List<DocumentScore>> scores = getQueryRank(args[0], args[1]);
+
             printOnConsole(scores, limit);
 
         }else{
@@ -43,6 +44,7 @@ public class BM25Ranker {
         System.out.printf("query_id  Q0  doc_id  rank   BM25_score  system_name %n");
         int index = 1;
         for(List<DocumentScore> scoredDocs : docScore.values()){
+            System.out.println("Total docs found : "+scoredDocs.size());
             for(int count = 1; count <= limit; count++) {
                 DocumentScore doc = scoredDocs.get(count - 1);
                 System.out.printf("%-9d Q0  %-6s %5d   %-10.6f  %s %n", index, doc.getDocumentId(),

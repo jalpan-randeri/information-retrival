@@ -12,10 +12,9 @@ import java.util.Queue;
 public class Crawler {
 
     public Queue<Path> crawlDirectory(String source) throws IOException {
-        Path sourceDir = Paths.get("cacm");
+        Path sourceDir = Paths.get(source);
         DirectoryWalker walker = new DirectoryWalker();
         Files.walkFileTree(sourceDir, walker);
-
         return walker.getQueue();
     }
 

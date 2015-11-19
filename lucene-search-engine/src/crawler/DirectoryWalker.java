@@ -27,7 +27,6 @@ public class DirectoryWalker extends SimpleFileVisitor<Path> {
                 || filename.endsWith(".xml")
                 || filename.endsWith(".txt")) {
             queue.add(file);
-            System.out.printf("Added file in queue %s%n", file.getFileName());
         }
         return FileVisitResult.CONTINUE;
     }

@@ -6,7 +6,8 @@ import org.apache.lucene.util.Version;
 import java.io.Reader;
 
 /**
- *
+ * Alphanumeric tokenizer will tokenize corpus if it is alphanumeric
+ * it will remove other tokens
  */
 public class AlphaNumericTokenizer extends CharTokenizer {
 

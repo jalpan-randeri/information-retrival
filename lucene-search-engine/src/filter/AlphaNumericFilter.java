@@ -8,7 +8,7 @@ import org.jsoup.Jsoup;
 import java.io.IOException;
 
 /**
- *
+ * Filter alphanumeric tokens from corpus
  */
 public class AlphaNumericFilter extends TokenFilter {
 

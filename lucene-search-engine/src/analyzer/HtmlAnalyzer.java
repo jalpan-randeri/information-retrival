@@ -11,7 +11,7 @@ import tokenizer.AlphaNumericTokenizer;
 import java.io.Reader;
 
 /**
- *
+ * Analyze html files
  */
 public class HtmlAnalyzer extends Analyzer {
 

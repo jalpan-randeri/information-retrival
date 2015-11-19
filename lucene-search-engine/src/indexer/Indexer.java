@@ -30,7 +30,10 @@ public class Indexer {
         writer = new IndexWriter(dir, config);
     }
 
-
+    /**
+     * index the files crawled by crawler
+     * @throws IOException
+     */
     public void index() throws IOException {
         DocumentHandler docHandler = new HtmlHandler();
         long initialDoc = writer.numDocs();

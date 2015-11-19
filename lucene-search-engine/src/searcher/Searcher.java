@@ -2,6 +2,7 @@ package searcher;
 
 import handler.DocumentHandler;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -14,7 +15,7 @@ import org.apache.lucene.util.Version;
 import java.io.IOException;
 
 /**
- *
+ * Search and gather results for given query
  */
 public class Searcher {
 
@@ -33,5 +34,9 @@ public class Searcher {
         Query  q = new QueryParser(Version.LUCENE_47, DocumentHandler.FIELD_CONTENTS, analyzer).parse(query);
         searcher.search(q, collector);
         return collector.topDocs().scoreDocs;
+    }
+
+    public Document doc(int docId) throws IOException {
+        return searcher.doc(docId);
     }
 }

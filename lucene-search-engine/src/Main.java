@@ -33,6 +33,10 @@ public class Main {
     public static void main(String[] args) throws IOException {
         String src = "cacm";
         String indexLocation = "index";
+        String queryFile = "queries.txt";
+        int printLimit = 100;
+
+
         // crawl
         Crawler crawler = new Crawler();
         Queue<Path> files = crawler.crawlDirectory(src);
@@ -51,15 +55,14 @@ public class Main {
                 .forEach(System.out::println);
 
         // search
-        int limit = 100;
-        String queryFile = "queries.txt";
-
+        int limit = 1000000;
         Stream<String> queries = Files.lines(Paths.get(queryFile));
         queries.forEach(line -> {
             try {
                 Searcher searcher = new Searcher(reader, analyzer, limit);
                 ScoreDoc[] hits =  searcher.search(line);
-                System.out.println("Found docs "+hits.length);
+                System.out.println("Total found docs "+hits.length);
+                Arrays.stream(hits).limit(printLimit).forEach(System.out::println);
             } catch (ParseException | IOException e) {
                 e.printStackTrace();
             }

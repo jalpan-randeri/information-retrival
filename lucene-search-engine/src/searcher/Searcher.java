@@ -18,16 +18,13 @@ import java.io.IOException;
  */
 public class Searcher {
 
-    private IndexReader reader;
     private Analyzer analyzer;
     private IndexSearcher searcher;
     private TopScoreDocCollector collector;
-    private int limit;
+
 
     public Searcher(IndexReader reader, Analyzer analyzer, int limit) {
-        this.reader = reader;
         this.analyzer = analyzer;
-        this.limit = limit;
         searcher = new IndexSearcher(reader);
         collector = TopScoreDocCollector.create(limit, true);
     }

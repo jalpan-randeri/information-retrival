@@ -12,6 +12,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,7 +26,7 @@ public class HtmlHandler implements DocumentHandler {
 
     @Override
     public Document getDocument(Path file) throws IOException {
-        String contents = Jsoup.parse(file.toFile(), String.valueOf(Charset.defaultCharset())).text();
+        String contents = Jsoup.parse(file.toFile(), String.valueOf(StandardCharsets.UTF_8)).text();
 
         Document doc = new Document();
         doc.add(new StringField(FIELD_FILE_NAME, file.getFileName().toString(), Field.Store.YES));

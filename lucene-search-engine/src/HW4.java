@@ -26,7 +26,7 @@ import java.util.HashMap;
  * on the input of the user.
  */
 public class HW4 {
-    private static Analyzer sAnalyzer = new HtmlAnalyzer();// new SimpleAnalyzer(Version.LUCENE_47);
+    private static Analyzer sAnalyzer = new HtmlAnalyzer();
 
     private IndexWriter writer;
     private ArrayList<File> queue = new ArrayList<>();
@@ -120,10 +120,6 @@ public class HW4 {
                     break;
                 }
 
-//		Query q = new QueryParser(Version.LUCENE_47, "contents",
-//			analyzer).parse(s);
-                // TODO: changed here
-                // TODO: after one run collector becomes null needs to figure it out what causing it to null
                 Query q = new QueryParser(Version.LUCENE_47, "contents", sAnalyzer).parse(s);
                 searcher.search(q, collector);
                 ScoreDoc[] hits = collector.topDocs().scoreDocs;
@@ -162,10 +158,6 @@ public class HW4 {
     public HW4(String indexDir) throws IOException {
 
         FSDirectory dir = FSDirectory.open(new File(indexDir));
-
-//        IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_47,
-//                analyzer);
-        //TODO: changed here
         IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_47, sAnalyzer);
 
         writer = new IndexWriter(dir, config);

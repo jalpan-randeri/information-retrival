@@ -44,9 +44,9 @@ public class Main {
 
 
 
-        String src = "cacm";
-        String indexLocation = "index";
-        String queryFile = "queries.txt";
+        String src = args[0];
+        String indexLocation = args[1];
+        String queryFile = args[2];
 
 
 

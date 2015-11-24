@@ -1,0 +1,4 @@
+portable operating systems
+code optimization for space efficiency
+parallel algorithms
+parallel processor in information retrieval

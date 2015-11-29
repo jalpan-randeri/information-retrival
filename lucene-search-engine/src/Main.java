@@ -78,7 +78,7 @@ public class Main {
 
 
         // search
-        PrintWriter searchWriter = new PrintWriter("Query-results.txt");
+        PrintWriter searchWriter = new PrintWriter("query-results.txt");
         int limit = 1000000;
         Stream<String> queries = Files.lines(Paths.get(queryFile));
         queries.forEach(line -> {
@@ -87,9 +87,9 @@ public class Main {
                 ScoreDoc[] hits =  searcher.search(line);
                 System.out.println("Total found docs "+hits.length);
 
-                searchWriter.println("========================================");
+//                searchWriter.println("========================================");
                 searchWriter.println("Query :"+line);
-                searchWriter.println("========================================");
+//                searchWriter.println("========================================");
 
                 for (int i = 0; i < hits.length && i < printLimit; ++i) {
                     int docId = hits[i].doc;
@@ -101,11 +101,11 @@ public class Main {
                     }else{
                         contents = doc[0];
                     }
-                    System.out.println((i + 1) + ".\n" + d.get(DocumentHandler.FIELD_FILE_NAME)
-                            + "\nscore=" + hits[i].score + "\ncontents "+contents+"\n");
-
-                    searchWriter.println((i + 1) + ".\n" + d.get(DocumentHandler.FIELD_FILE_NAME)
-                            + "\nscore=" + hits[i].score + "\ncontents "+contents+"\n");
+//                    System.out.println((i + 1) + ".\n" + d.get(DocumentHandler.FIELD_FILE_NAME)
+//                            + "\nscore=" + hits[i].score + "\ncontents "+contents+"\n");
+                    searchWriter.println(d.get(DocumentHandler.FIELD_FILE_NAME));
+//                    searchWriter.println((i + 1) + ".\n" + d.get(DocumentHandler.FIELD_FILE_NAME)
+//                            + "\nscore=" + hits[i].score + "\ncontents "+contents+"\n");
                 }
 
             } catch (ParseException | IOException e) {

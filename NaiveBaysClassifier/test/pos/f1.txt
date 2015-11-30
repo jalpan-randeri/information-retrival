@@ -1,0 +1,9 @@
+overcast
+rainy
+rainy
+overcast
+sunny
+rainy
+sunny
+overcast
+overcast

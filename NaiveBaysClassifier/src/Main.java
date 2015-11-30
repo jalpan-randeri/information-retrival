@@ -43,7 +43,12 @@ public class Main {
 
 
         Predictor predictor = new Predictor(posTermFreq, negTermFreq, termFreq);
-        Files.walkFileTree(Paths.get("textcat/dev"), predictor);
+        Files.walkFileTree(Paths.get("textcat/train/pos"), predictor);
+
+        Files.walkFileTree(Paths.get("textcat/train/neg"), predictor);
+
+
+        Files.walkFileTree(Paths.get("textcat/test"), predictor);
 
     }
 

@@ -46,8 +46,8 @@ public class Predictor extends SimpleFileVisitor<Path> {
             Arrays.stream(t).filter(term -> !term.isEmpty()).forEach(terms::add);
         }
 
-        double yes = 1.0;
-        double no = 1.0;
+        double yes = 0;
+        double no = 0;
 
         double pOfYes = (double) countOfYes / totalValueCount;
         double pOfNo = (double) countOfNo / totalValueCount;
@@ -56,25 +56,21 @@ public class Predictor extends SimpleFileVisitor<Path> {
         for(String term : terms){
 
                 long countOfTermForYes = getCountOfTermForYes(term, posTermFreq);
-                long totalCountOfTerm = getTotalCountOfTerm(term, termFreq);
                 long countOfTermForNo = getCountOfTermForNo(term, negTermFreq);
 
 
                 double termOverYes = (countOfTermForYes + 1.0) / (countOfYes + totalUniqueTermCount);
                 double termOverNo = (countOfTermForNo + 1.0) / (countOfNo + totalUniqueTermCount);
-                double pOfTerm = (totalCountOfTerm + 1.0) / totalValueCount;
 
 
-                double tempYes = pOfClassOverTerm(termOverYes, pOfTerm);
-                double tempNo = pOfClassOverTerm(termOverNo, pOfTerm);
 
-                yes = yes * tempYes;
-                no = no * tempNo;
+                yes = yes + Math.log(termOverYes);
+                no = no + Math.log(termOverNo);
 
 
         }
-        yes = yes * pOfYes;
-        no = no * pOfNo;
+        yes = yes + Math.log(pOfYes);
+        no = no + Math.log(pOfNo);
 
 
         if(yes > no){
@@ -86,32 +82,6 @@ public class Predictor extends SimpleFileVisitor<Path> {
 
         return FileVisitResult.CONTINUE;
     }
-
-
-    private double pOfClassOverTerm(double termOverClass, double pOfTerm) {
-        /**
-         *                            P(X = sunny | Y = yes) * P(Y = yes)
-         * P(X = yes | Y = sunny) =  -------------------------------------
-         *                                  P( X = sunny)
-         *
-         *
-         *                            count of term for yes   + 1 (smoothing)
-         *  P(X = sunny | Y = yes) =  ----------------------
-         *                            total count of yes    + (total unique term) (smoothing)
-         *
-         *                   count of yes
-         *  P( Y = yes) =   ---------------
-         *                   total value count
-         *
-         *
-         *                  count of sunny
-         *  P( X = sunny) = ---------------
-         *                  total value count
-         */
-
-        return (termOverClass) /  pOfTerm;
-    }
-
 
 
 

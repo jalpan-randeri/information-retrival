@@ -10,29 +10,18 @@ import java.util.stream.Stream;
  */
 public class Predictor extends SimpleFileVisitor<Path> {
 
-    private Map<String, Long> posTermFreq;
-    private Map<String, Long> negTermFreq;
-    private Map<String, Long> termFreq;
+    private Map<String, String> probalities;
 
+    public Predictor(String modelFile) throws IOException {
+        List<String> lines = Files.lines(Paths.get(modelFile)).collect(Collectors.toList());
 
-    private long countOfYes;
-    private long countOfNo;
-    private long totalUniqueTermCount;
-    private long totalValueCount;
+        probalities = new HashMap<>();
+        for(String line : lines){
+            String key = line.substring(0, line.indexOf(','));
+            String value = line.substring(line.indexOf(',') + 1);
 
-
-
-    public Predictor(Map<String, Long> posTermFreq, Map<String, Long> negTermFreq, Map<String, Long> termFreq) {
-        this.posTermFreq = posTermFreq;
-        this.negTermFreq = negTermFreq;
-        this.termFreq = termFreq;
-
-
-
-        countOfYes = getCountOfYes(posTermFreq);
-        countOfNo = getCountOfNo(negTermFreq);
-        totalValueCount = getTotalValueCount(termFreq);
-        totalUniqueTermCount = getTotalUniqueTermCount(termFreq);
+            probalities.put(key, value);
+        }
     }
 
     @Override
@@ -49,24 +38,24 @@ public class Predictor extends SimpleFileVisitor<Path> {
         double yes = 0;
         double no = 0;
 
-        double pOfYes = (double) countOfYes / totalValueCount;
-        double pOfNo = (double) countOfNo / totalValueCount;
-
+        String[] temp = probalities.get("p(yes)(no)").split(",");
+        double pOfYes =  Double.parseDouble(temp[0]);
+        double pOfNo = Double.parseDouble(temp[1]);
 
         for(String term : terms){
 
-                long countOfTermForYes = getCountOfTermForYes(term, posTermFreq);
-                long countOfTermForNo = getCountOfTermForNo(term, negTermFreq);
+                String value = probalities.get(term);
+                if(value == null){
+                    value = probalities.get("p(default)");
+                }
 
+                String[] val = value.split(",");
 
-                double termOverYes = (countOfTermForYes + 1.0) / (countOfYes + totalUniqueTermCount);
-                double termOverNo = (countOfTermForNo + 1.0) / (countOfNo + totalUniqueTermCount);
-
-
+                double termOverYes = Double.parseDouble(val[0]);
+                double termOverNo = Double.parseDouble(val[1]);
 
                 yes = yes + Math.log(termOverYes);
                 no = no + Math.log(termOverNo);
-
 
         }
         yes = yes + Math.log(pOfYes);
@@ -86,45 +75,7 @@ public class Predictor extends SimpleFileVisitor<Path> {
 
 
 
-    private static long getCountOfTermForYes(String term, Map<String, Long> posFreq){
-        if(posFreq.containsKey(term)){
-            return posFreq.get(term);
-        }
 
-        return 0;
-    }
-
-    private static long getCountOfTermForNo(String term, Map<String, Long> negFreq){
-        if(negFreq.containsKey(term)){
-            return negFreq.get(term);
-        }
-
-        return 0;
-    }
-
-
-    private static long getCountOfYes(Map<String, Long> posFreq){
-        return posFreq.values().stream().mapToLong(Long::longValue).sum();
-    }
-
-    private static long getCountOfNo(Map<String, Long> negFreq){
-        return negFreq.values().stream().mapToLong(Long::longValue).sum();
-    }
-
-    private static long getTotalValueCount(Map<String, Long> termFreq){
-        return termFreq.values().stream().mapToLong(Long::longValue).sum();
-    }
-
-    private static long getTotalCountOfTerm(String term, Map<String, Long> termFreq){
-        if(termFreq.containsKey(term)){
-            return termFreq.get(term);
-        }
-        return 0;
-    }
-
-    private static long getTotalUniqueTermCount(Map<String, Long> termFreq){
-        return termFreq.keySet().size();
-    }
 
 
 

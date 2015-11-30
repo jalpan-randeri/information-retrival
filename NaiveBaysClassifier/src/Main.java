@@ -23,26 +23,41 @@ public class Main {
         Map<String, Long> negTermFreq = walker.getNegTermFrequency();
         Map<String, Long> termFreq = walker.getTermFrequency();
 
+        double countOfYes = getCountOfYes(posTermFreq);
+        double countOfNo = getCountOfNo(negTermFreq);
+        double totalUniqueTermCount = getTotalUniqueTermCount(termFreq);
 
-        writer.println("====POS=====");
-        posTermFreq.entrySet().forEach(e -> writer.printf("%s=%d%n",e.getKey(), e.getValue()));
 
-        writer.println("====NEG=====");
-        negTermFreq.entrySet().forEach(e -> writer.printf("%s=%d%n",e.getKey(), e.getValue()));
+        double pOfYes = (double) getCountOfYes(posTermFreq) / getTotalValueCount(termFreq);
+        double pOfNo = (double) getCountOfNo(negTermFreq) / getTotalValueCount(termFreq);
 
-        writer.println("====TOTAL=====");
-        termFreq.entrySet().forEach(e -> writer.printf("%s=%d%n",e.getKey(), e.getValue()));
+        writer.printf("%s,%.10f,%.10f%n","p(yes)(no)", pOfYes, pOfNo);
 
+        double defaultValueYes = 1.0 / (countOfYes + totalUniqueTermCount);
+        double defaultValueNo = 1.0 / (countOfNo +  totalUniqueTermCount);
+
+        writer.printf("%s,%.10f,%.10f%n","p(default)",defaultValueYes, defaultValueNo);
+
+        for(String term : termFreq.keySet()){
+
+
+            long countOfTermForYes = getCountOfTermForYes(term, posTermFreq);
+            long countOfTermForNo = getCountOfTermForNo(term, negTermFreq);
+
+
+            double termOverYes = (countOfTermForYes + 1.0) / (countOfYes + totalUniqueTermCount);
+            double termOverNo = (countOfTermForNo + 1.0) / (countOfNo + totalUniqueTermCount);
+
+            writer.printf("%s,%.10f,%.10f%n",term, termOverYes, termOverNo);
+
+        }
 
         writer.close();
 
 
 
-        //NOte: test prediction
 
-
-
-        Predictor predictor = new Predictor(posTermFreq, negTermFreq, termFreq);
+        Predictor predictor = new Predictor("model.txt");
         Files.walkFileTree(Paths.get("textcat/train/pos"), predictor);
 
         Files.walkFileTree(Paths.get("textcat/train/neg"), predictor);
@@ -55,7 +70,39 @@ public class Main {
 
 
 
+    private static long getCountOfTermForYes(String term, Map<String, Long> posFreq){
+        if(posFreq.containsKey(term)){
+            return posFreq.get(term);
+        }
 
+        return 0;
+    }
+
+    private static long getCountOfTermForNo(String term, Map<String, Long> negFreq){
+        if(negFreq.containsKey(term)){
+            return negFreq.get(term);
+        }
+
+        return 0;
+    }
+
+
+    private static long getCountOfYes(Map<String, Long> posFreq){
+        return posFreq.values().stream().mapToLong(Long::longValue).sum();
+    }
+
+    private static long getCountOfNo(Map<String, Long> negFreq){
+        return negFreq.values().stream().mapToLong(Long::longValue).sum();
+    }
+
+    private static long getTotalValueCount(Map<String, Long> termFreq){
+        return termFreq.values().stream().mapToLong(Long::longValue).sum();
+    }
+
+
+    private static long getTotalUniqueTermCount(Map<String, Long> termFreq){
+        return termFreq.keySet().size();
+    }
 
 
 

@@ -9,12 +9,19 @@ import java.util.Map;
  *
  */
 public class Nbtrain {
+
+    public static final String LABEL_P_YES_NO = "p(yes)(no)";
+    public static final String LABEL_P_DEFAULT = "p(default)";
+    public static final double LAPLACE_SMOOTHING = 1.0;
+
     public static void main(String[] args) throws IOException {
 
 
-        PrintWriter writer = new PrintWriter("model.txt");
+        String modelFile = "model.txt";
+        String inputPath = "textcat/train";
 
-        Path positiveDir = Paths.get("textcat/train");
+        PrintWriter writer = new PrintWriter(modelFile);
+        Path positiveDir = Paths.get(inputPath);
 
         DirectoryTreeWalker walker = new DirectoryTreeWalker();
         Files.walkFileTree(positiveDir, walker);
@@ -31,12 +38,12 @@ public class Nbtrain {
         double pOfYes = (double) getCountOfYes(posTermFreq) / getTotalValueCount(termFreq);
         double pOfNo = (double) getCountOfNo(negTermFreq) / getTotalValueCount(termFreq);
 
-        writer.printf("%s,%.10f,%.10f%n","p(yes)(no)", pOfYes, pOfNo);
+        writer.printf("%s,%.10f,%.10f%n", LABEL_P_YES_NO, pOfYes, pOfNo);
 
-        double defaultValueYes = 1.0 / (countOfYes + totalUniqueTermCount);
-        double defaultValueNo = 1.0 / (countOfNo +  totalUniqueTermCount);
+        double defaultValueYes = LAPLACE_SMOOTHING / (countOfYes + totalUniqueTermCount);
+        double defaultValueNo = LAPLACE_SMOOTHING / (countOfNo +  totalUniqueTermCount);
 
-        writer.printf("%s,%.10f,%.10f%n","p(default)",defaultValueYes, defaultValueNo);
+        writer.printf("%s,%.10f,%.10f%n", LABEL_P_DEFAULT,defaultValueYes, defaultValueNo);
 
         for(String term : termFreq.keySet()){
 
@@ -45,8 +52,8 @@ public class Nbtrain {
             long countOfTermForNo = getCountOfTermForNo(term, negTermFreq);
 
 
-            double termOverYes = (countOfTermForYes + 1.0) / (countOfYes + totalUniqueTermCount);
-            double termOverNo = (countOfTermForNo + 1.0) / (countOfNo + totalUniqueTermCount);
+            double termOverYes = (countOfTermForYes + LAPLACE_SMOOTHING) / (countOfYes + totalUniqueTermCount);
+            double termOverNo = (countOfTermForNo + LAPLACE_SMOOTHING) / (countOfNo + totalUniqueTermCount);
 
             writer.printf("%s,%.10f,%.10f%n",term, termOverYes, termOverNo);
 
@@ -54,11 +61,6 @@ public class Nbtrain {
 
         writer.close();
 
-
-
-
-        Predictor predictor = new Predictor("model.txt");
-        Files.walkFileTree(Paths.get("textcat/test"), predictor);
 
     }
 

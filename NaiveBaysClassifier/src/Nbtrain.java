@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  *
  */
-public class Main {
+public class Nbtrain {
     public static void main(String[] args) throws IOException {
 
 
@@ -58,11 +58,6 @@ public class Main {
 
 
         Predictor predictor = new Predictor("model.txt");
-        Files.walkFileTree(Paths.get("textcat/train/pos"), predictor);
-
-        Files.walkFileTree(Paths.get("textcat/train/neg"), predictor);
-
-
         Files.walkFileTree(Paths.get("textcat/test"), predictor);
 
     }

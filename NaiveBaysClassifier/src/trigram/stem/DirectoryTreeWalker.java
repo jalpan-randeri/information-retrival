@@ -110,7 +110,7 @@ public class DirectoryTreeWalker extends SimpleFileVisitor<Path> {
 //                .stream()
 //                .filter(entry -> entry.getValue() > 1)
 //                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-//
+
 
 
 
@@ -123,18 +123,18 @@ public class DirectoryTreeWalker extends SimpleFileVisitor<Path> {
             }
         }
 
-//        Map<String, Long> map = termFrequency.entrySet()
-//                                    .stream()
-//                                    .filter(e -> e.getValue() <= 1)
-//                                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-//
-//        map.keySet()
-//                .stream()
-//                .forEach(key -> {
-//                    termFrequency.remove(key);
-//                    posTermFrequency.remove(key);
-//                    negTermFrequency.remove(key);
-//                });
+        Map<String, Long> map = termFrequency.entrySet()
+                                    .stream()
+                                    .filter(e -> e.getValue() <= 3)
+                                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        map.keySet()
+                .stream()
+                .forEach(key -> {
+                    termFrequency.remove(key);
+                    posTermFrequency.remove(key);
+                    negTermFrequency.remove(key);
+                });
 
 
 

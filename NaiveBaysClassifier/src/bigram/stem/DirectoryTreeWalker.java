@@ -56,16 +56,24 @@ public class DirectoryTreeWalker extends SimpleFileVisitor<Path> {
             try {
 
                 String[] contents = stemmLine(line);
-                Arrays.stream(contents).forEach(term -> {
-                    String key = term.toLowerCase().trim();
+
+                for(int i = 1; i < contents.length; i++){
+                    String key = contents[i - 1] +" "+contents[i];
 
                     if(map.containsKey(key)){
                         map.put(key, map.get(key) + 1L);
-                    } else {
+                    }else{
                         map.put(key, 1L);
                     }
-                });
 
+                    String reverseKey = contents[i] +" "+contents[i - 1];
+                    if(map.containsKey(reverseKey)){
+                        map.put(reverseKey, map.get(reverseKey) + 1L);
+                    }else{
+                        map.put(reverseKey, 1L);
+                    }
+
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -86,15 +94,27 @@ public class DirectoryTreeWalker extends SimpleFileVisitor<Path> {
 
     private void pruneInvalidTerms(){
 
-        posTermFrequency = posTermFrequency.entrySet()
+//        posTermFrequency = posTermFrequency.entrySet()
+//                .stream()
+//                .filter(entry -> entry.getValue() > 5)
+//                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+//
+//        negTermFrequency = negTermFrequency.entrySet()
+//                .stream()
+//                .filter(entry -> entry.getValue() > 5)
+//                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+
+        Map<String, Long> map = posTermFrequency.entrySet()
                 .stream()
-                .filter(entry -> entry.getValue() > 17)
+                .filter(pos -> negTermFrequency.containsKey(pos.getKey())
+                        && negTermFrequency.get(pos.getKey()).equals(pos.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        negTermFrequency = negTermFrequency.entrySet()
-                .stream()
-                .filter(entry -> entry.getValue() > 17)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        for(String key : map.keySet()){
+            posTermFrequency.remove(key);
+            negTermFrequency.remove(key);
+        }
 
 
         termFrequency = new HashMap<>(posTermFrequency);

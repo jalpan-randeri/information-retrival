@@ -21,7 +21,7 @@ public class Nbtrain {
     public static void main(String[] args) throws IOException {
 
 
-        String modelFile = "model-stem.txt";
+        String modelFile = "model-bi-stem.txt";
         String inputPath = "textcat/train";
 
         PrintWriter writer = new PrintWriter(modelFile);

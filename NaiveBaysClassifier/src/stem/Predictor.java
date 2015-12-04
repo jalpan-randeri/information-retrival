@@ -5,6 +5,7 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.flexible.standard.QueryParserUtil;
 import org.apache.lucene.util.Version;
+import utils.TextUtils;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -76,10 +77,11 @@ public class Predictor extends SimpleFileVisitor<Path> {
             try {
 
                 String stemmed = parser.parse(QueryParserUtil.escape(line)).toString(DirectoryTreeWalker.FIELD_TERM);
+                stemmed = TextUtils.removeStopWords(stemmed);
                 String[] t =  stemmed.split(" ");
                 Arrays.stream(t).filter(term -> !term.isEmpty()).forEach(terms::add);
 
-            } catch (ParseException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

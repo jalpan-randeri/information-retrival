@@ -10,7 +10,7 @@ import java.nio.file.Paths;
 public class Nbtest {
     public static void main(String[] args) throws IOException {
 
-        String modelFile = "model-stem.txt";
+        String modelFile = "model-bi-stem.txt";
         String testPath = "textcat/dev";
 
         Predictor predictor = new Predictor(modelFile);

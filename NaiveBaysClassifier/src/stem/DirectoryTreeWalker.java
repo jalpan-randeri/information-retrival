@@ -89,12 +89,12 @@ public class DirectoryTreeWalker extends SimpleFileVisitor<Path> {
 
         posTermFrequency = posTermFrequency.entrySet()
                 .stream()
-                .filter(entry -> entry.getValue() > 17)
+                .filter(entry -> entry.getValue() > 16)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         negTermFrequency = negTermFrequency.entrySet()
                 .stream()
-                .filter(entry -> entry.getValue() > 17)
+                .filter(entry -> entry.getValue() > 16)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
 

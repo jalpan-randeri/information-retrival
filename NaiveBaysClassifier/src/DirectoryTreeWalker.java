@@ -4,9 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -17,6 +15,7 @@ public class DirectoryTreeWalker extends SimpleFileVisitor<Path> {
     Map<String, Long> posTermFrequency;
     Map<String, Long> negTermFrequency;
     Map<String, Long> termFrequency;
+
 
     public DirectoryTreeWalker() {
         posTermFrequency = new HashMap<>();
@@ -35,6 +34,8 @@ public class DirectoryTreeWalker extends SimpleFileVisitor<Path> {
 
 
 
+
+
         Files.lines(file).forEach(line -> {
             String[] contents = line.split(" ");
             Arrays.stream(contents).forEach(term -> {
@@ -43,7 +44,7 @@ public class DirectoryTreeWalker extends SimpleFileVisitor<Path> {
                 if(map.containsKey(key)){
                     map.put(key, map.get(key) + 1L);
                 } else {
-                  map.put(key, 1L);
+                    map.put(key, 1L);
                 }
             });
         });
@@ -79,6 +80,8 @@ public class DirectoryTreeWalker extends SimpleFileVisitor<Path> {
                 posTermFrequency.remove(entry.getKey());
                 negTermFrequency.remove(entry.getKey());
             });
+
+
     }
 
     public Map<String, Long> getTermFrequency(){

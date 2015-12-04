@@ -9,6 +9,8 @@ import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.util.Version;
 
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -29,4 +31,30 @@ public class TextUtils {
         }
         return sb.toString();
     }
+
+
+
+    public static List<String> permute(List<String> tokens){
+        List<String> list = new ArrayList<>();
+        permuteHelper(tokens, list,  "");
+        return list;
+    }
+
+    private static void permuteHelper(List<String> base, List<String> result,  String acc){
+        int length = base.size();
+        if(length == 0){
+            result.add(acc.trim());
+        }else{
+            for(int i = 0; i < length; i++){
+                String s = base.get(i);
+                List<String> prefix = base.subList(0, i);
+                List<String> suffix = base.subList(i + 1, length);
+                List<String> combined = new ArrayList<>(prefix);
+                combined.addAll(suffix);
+
+                permuteHelper(combined, result, acc + s +" ");
+            }
+        }
+    }
+
 }

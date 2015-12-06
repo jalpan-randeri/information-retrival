@@ -5,7 +5,7 @@ import java.util.Map;
 /**
  *
  */
-public class ProbabilityUtils {
+public class TermUtils {
 
     public static long getCountOfTermForYes(String term, Map<String, Long> posFreq){
         if(posFreq.containsKey(term)){

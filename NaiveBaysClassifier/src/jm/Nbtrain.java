@@ -1,4 +1,4 @@
-package trigram.stem;
+package jm;
 
 import utils.TermUtils;
 
@@ -15,13 +15,12 @@ import java.util.Map;
 public class Nbtrain {
 
     public static final String LABEL_P_YES_NO = "p(yes)(no)";
-    public static final String LABEL_P_DEFAULT = "p(default)";
-    public static final double LAPLACE_SMOOTHING = 1.0;
+    public static final double LAMBDA = 0.7;
 
     public static void main(String[] args) throws IOException {
 
 
-        String modelFile = "model-tri-stem.txt";
+        String modelFile = "jm-model.txt";
         String inputPath = "textcat/train";
 
         PrintWriter writer = new PrintWriter(modelFile);
@@ -44,20 +43,19 @@ public class Nbtrain {
 
         writer.printf("%s,%.10f,%.10f%n", LABEL_P_YES_NO, pOfYes, pOfNo);
 
-        double defaultValueYes = LAPLACE_SMOOTHING / (countOfYes + totalUniqueTermCount);
-        double defaultValueNo = LAPLACE_SMOOTHING / (countOfNo +  totalUniqueTermCount);
-
-        writer.printf("%s,%.10f,%.10f%n", LABEL_P_DEFAULT,defaultValueYes, defaultValueNo);
 
         for(String term : termFreq.keySet()){
-
 
             long countOfTermForYes = TermUtils.getCountOfTermForYes(term, posTermFreq);
             long countOfTermForNo = TermUtils.getCountOfTermForNo(term, negTermFreq);
 
 
-            double termOverYes = (countOfTermForYes + LAPLACE_SMOOTHING) / (countOfYes + totalUniqueTermCount);
-            double termOverNo = (countOfTermForNo + LAPLACE_SMOOTHING) / (countOfNo + totalUniqueTermCount);
+            double termOverYes =  countOfTermForYes / (countOfYes + totalUniqueTermCount);
+            termOverYes = ((1 - LAMBDA) * termOverYes) / (LAMBDA * pOfYes);
+
+
+            double termOverNo =  (countOfTermForNo) / (countOfNo + totalUniqueTermCount);
+            termOverNo = ((1 - LAMBDA) * termOverNo) / (LAMBDA * pOfNo);
 
             writer.printf("%s,%.10f,%.10f%n",term, termOverYes, termOverNo);
 

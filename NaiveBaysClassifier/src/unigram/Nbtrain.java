@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
-import utils.ProbabilityUtils;
+import utils.TermUtils;
 /**
  *
  */
@@ -33,13 +33,13 @@ public class Nbtrain {
         Map<String, Long> negTermFreq = walker.getNegTermFrequency();
         Map<String, Long> termFreq = walker.getTermFrequency();
 
-        double countOfYes = ProbabilityUtils.getCountOfYes(posTermFreq);
-        double countOfNo = ProbabilityUtils.getCountOfNo(negTermFreq);
-        double totalUniqueTermCount = ProbabilityUtils.getTotalUniqueTermCount(termFreq);
+        double countOfYes = TermUtils.getCountOfYes(posTermFreq);
+        double countOfNo = TermUtils.getCountOfNo(negTermFreq);
+        double totalUniqueTermCount = TermUtils.getTotalUniqueTermCount(termFreq);
 
 
-        double pOfYes = (double) ProbabilityUtils.getCountOfYes(posTermFreq) / ProbabilityUtils.getTotalValueCount(termFreq);
-        double pOfNo = (double) ProbabilityUtils.getCountOfNo(negTermFreq) / ProbabilityUtils.getTotalValueCount(termFreq);
+        double pOfYes = (double) TermUtils.getCountOfYes(posTermFreq) / TermUtils.getTotalValueCount(termFreq);
+        double pOfNo = (double) TermUtils.getCountOfNo(negTermFreq) / TermUtils.getTotalValueCount(termFreq);
 
         writer.printf("%s,%.10f,%.10f%n", LABEL_P_YES_NO, pOfYes, pOfNo);
 
@@ -51,8 +51,8 @@ public class Nbtrain {
         for(String term : termFreq.keySet()){
 
 
-            long countOfTermForYes = ProbabilityUtils.getCountOfTermForYes(term, posTermFreq);
-            long countOfTermForNo = ProbabilityUtils.getCountOfTermForNo(term, negTermFreq);
+            long countOfTermForYes = TermUtils.getCountOfTermForYes(term, posTermFreq);
+            long countOfTermForNo = TermUtils.getCountOfTermForNo(term, negTermFreq);
 
 
             double termOverYes = (countOfTermForYes + LAPLACE_SMOOTHING) / (countOfYes + totalUniqueTermCount);

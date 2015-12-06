@@ -88,7 +88,7 @@ public class Main {
                 System.out.println("Total found docs "+hits.length);
 
 //                searchWriter.println("========================================");
-                searchWriter.println("Query :"+line);
+                searchWriter.println("Query, "+line);
 //                searchWriter.println("========================================");
 
                 for (int i = 0; i < hits.length && i < printLimit; ++i) {
@@ -103,7 +103,11 @@ public class Main {
                     }
 //                    System.out.println((i + 1) + ".\n" + d.get(DocumentHandler.FIELD_FILE_NAME)
 //                            + "\nscore=" + hits[i].score + "\ncontents "+contents+"\n");
-                    searchWriter.println(d.get(DocumentHandler.FIELD_FILE_NAME));
+
+                    String document_id = d.get(DocumentHandler.FIELD_FILE_NAME).replace(".html","");
+                    String document_score = String.format("%.10f", hits[i].score);
+
+                    searchWriter.println(document_id + ", "+document_score);
 //                    searchWriter.println((i + 1) + ".\n" + d.get(DocumentHandler.FIELD_FILE_NAME)
 //                            + "\nscore=" + hits[i].score + "\ncontents "+contents+"\n");
                 }

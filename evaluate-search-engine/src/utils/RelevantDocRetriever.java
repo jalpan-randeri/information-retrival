@@ -3,7 +3,6 @@ package utils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,21 +12,25 @@ import java.util.stream.Collectors;
 public class RelevantDocRetriever {
 
     public static List<String> getDocumentsForQuery(String queryId, String path){
-        List<String> list = new ArrayList<>();
+
         try {
-            list =  Files.lines(Paths.get(path))
-                    .filter(line -> isSameQuery(line, queryId))
+            List<String> file = Files.lines(Paths.get(path)).collect(Collectors.toList());
+            List<String> validLines = file.stream()
+                                          .filter(line -> isSameQuery(line, queryId))
+                                          .collect(Collectors.toList());
+
+            return validLines.stream()
                     .map(RelevantDocRetriever::retrieveDoc)
                     .collect(Collectors.toList());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        return list;
+
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private static boolean isSameQuery(String queryLine, String queryId){
-        return queryLine.split(" ")[0].equals(queryId);
+        return queryLine.split(" ")[0].trim().equals(queryId);
     }
 
     private static String retrieveDoc(String queryLine){

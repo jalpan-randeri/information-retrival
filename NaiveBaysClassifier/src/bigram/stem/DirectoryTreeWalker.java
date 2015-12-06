@@ -105,16 +105,16 @@ public class DirectoryTreeWalker extends SimpleFileVisitor<Path> {
 //                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
 
-        Map<String, Long> map = posTermFrequency.entrySet()
-                .stream()
-                .filter(pos -> negTermFrequency.containsKey(pos.getKey())
-                        && negTermFrequency.get(pos.getKey()).equals(pos.getValue()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        for(String key : map.keySet()){
-            posTermFrequency.remove(key);
-            negTermFrequency.remove(key);
-        }
+//        Map<String, Long> map = posTermFrequency.entrySet()
+//                .stream()
+//                .filter(pos -> negTermFrequency.containsKey(pos.getKey())
+//                        && negTermFrequency.get(pos.getKey()).equals(pos.getValue()))
+//                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+//
+//        for(String key : map.keySet()){
+//            posTermFrequency.remove(key);
+//            negTermFrequency.remove(key);
+//        }
 
 
         termFrequency = new HashMap<>(posTermFrequency);
@@ -126,7 +126,17 @@ public class DirectoryTreeWalker extends SimpleFileVisitor<Path> {
             }
         }
 
-
+//        Map<String, Long> map = termFrequency.entrySet()
+//                .stream()
+//                .filter(e -> e.getValue() < 15)
+//                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+//
+//
+//        map.keySet().forEach(key -> {
+//            posTermFrequency.remove(key);
+//            negTermFrequency.remove(key);
+//            termFrequency.remove(key);
+//        });
 
     }
 

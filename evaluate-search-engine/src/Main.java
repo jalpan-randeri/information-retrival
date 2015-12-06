@@ -8,7 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -17,33 +16,44 @@ import java.util.stream.Collectors;
 public class Main {
     public static void main(String[] args) throws IOException {
 
-        String relevantPath = "cacm.rel";
-//        String retrievedPath = "query-results-bm25.txt";
-        String retrievedPath = "query-results.txt";
-        String inputPath = "query.txt";
+        if(args.length != 3){
+            System.out.println("Usage: Main  [judgement-file] [hw-4-result] [query.txt]");
+            System.out.println("e.g   cacm.rel    query-results.txt   query.txt");
+            System.exit(1);
+        }
+
+        String relevantPath = args[0];
+        String retrievedPath = args[1];
+        String inputPath = args[2];
+
+//        String relevantPath = "cacm.rel";
+//        String retrievedPath = "query-results.txt";
+//        String inputPath = "query.txt";
 
 
         List<String> queries = Files.lines(Paths.get(inputPath)).collect(Collectors.toList());
-        processQueries(queries,relevantPath, retrievedPath);
+        List<Double> avgPrecision = new ArrayList<>();
+        processQueries(queries,relevantPath, retrievedPath, avgPrecision);
+        System.out.println("Mean Avg Precision : "+avgPrecision.stream().mapToDouble(Double::doubleValue).average().getAsDouble());
 
 
     }
 
 
 
-    private static void processQueries(List<String> quries,  String relevantPath, String retrievedPath){
+    private static void processQueries(List<String> quries, String relevantPath, String retrievedPath, List<Double> avgPrecision){
 
         String HEADER = "rank   doc_id     doc_score    precision    recall  relevance     NDCG";
         System.out.println(HEADER);
         for(String queryLine : quries){
-            List<String> result = getMetrics(queryLine, relevantPath, retrievedPath);
+            List<String> result = getMetrics(queryLine, relevantPath, retrievedPath, avgPrecision);
             result.forEach(System.out::println);
         }
 
     }
 
 
-    private static List<String> getMetrics(String queryLine, String relevantPath, String retrievedPath){
+    private static List<String> getMetrics(String queryLine, String relevantPath, String retrievedPath, List<Double> avgPrecision){
         String query = getQueryString(queryLine);
         String queryId = getQueryId(queryLine);
 
@@ -75,9 +85,10 @@ public class Main {
 
             result.add(line);
         }
-        double avgPrecision = precisionList.stream().mapToDouble(e -> e).average().getAsDouble();
-        System.out.println("AVG precision : "+avgPrecision);
+        double avgPre = precisionList.stream().mapToDouble(e -> e).average().getAsDouble();
+        avgPrecision.add(avgPre);
 
+        System.out.println("AVG precision : "+avgPrecision);
         return result;
     }
 
@@ -96,9 +107,6 @@ public class Main {
                 .collect(Collectors.toList());
     }
 
-    private static Optional<Document> getDocumentWithID(String id, List<Document> list){
-        return list.stream().filter(d -> d.getId().equals(id)).findFirst();
-    }
 
 
     private static String getQueryString(String line){

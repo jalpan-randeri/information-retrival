@@ -116,6 +116,7 @@ public class Predictor extends SimpleFileVisitor<Path> {
             }
         }
 
+        System.out.printf("%s   %.10f   %10f%n",file, yes, no);
 
         return FileVisitResult.CONTINUE;
     }

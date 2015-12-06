@@ -15,7 +15,7 @@ import java.util.Map;
 public class Nbtrain {
 
     public static final String LABEL_P_YES_NO = "p(yes)(no)";
-    public static double LAMBDA = 0.1;
+    public static double LAMBDA = 0.0003;
     public static final String LABEL_P_DEFAULT = "p(default)";
 
 

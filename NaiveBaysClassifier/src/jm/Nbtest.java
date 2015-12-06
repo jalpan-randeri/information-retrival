@@ -14,7 +14,7 @@ public class Nbtest {
     public static void main(String[] args) throws IOException {
 
         String modelFile = "jm-model.txt";
-        String testPath = "textcat/dev";
+        String testPath = "textcat/test";
 
         Predictor predictor = new Predictor(modelFile);
         Files.walkFileTree(Paths.get(testPath), predictor);

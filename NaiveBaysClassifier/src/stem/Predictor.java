@@ -114,9 +114,9 @@ public class Predictor extends SimpleFileVisitor<Path> {
 
 
         if(yes == no){
-            System.out.println(file.toString()+ " -> Unknown ");
+//            System.out.println(file.toString()+ " -> Unknown ");
         }else if(yes > no){
-            System.out.println(file.toString()+ " -> Yes " +yes);
+//            System.out.println(file.toString()+ " -> Yes " +yes);
 
             if(file.toString().contains("neg")){
                 falsePositive++;
@@ -125,7 +125,7 @@ public class Predictor extends SimpleFileVisitor<Path> {
             }
 
         }else{
-            System.out.println(file.toString()+ " -> No "+no);
+//            System.out.println(file.toString()+ " -> No "+no);
 
             if(file.toString().contains("pos")){
                 falseNegative++;
@@ -134,6 +134,8 @@ public class Predictor extends SimpleFileVisitor<Path> {
             }
         }
 
+
+        System.out.printf("%s   %.10f   %10f%n",file, yes, no);
 
 
         return FileVisitResult.CONTINUE;

@@ -14,7 +14,7 @@ public class Nbtest {
         String biFile = "model-bi-stem.txt";
         String triFile = "model-tri-stem.txt";
 
-        String testPath = "textcat/dev";
+        String testPath = "textcat/test";
 
         Predictor predictor = new Predictor(uniFile, biFile, triFile);
         Files.walkFileTree(Paths.get(testPath), predictor);

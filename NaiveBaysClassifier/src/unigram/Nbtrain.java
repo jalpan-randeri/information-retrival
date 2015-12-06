@@ -23,8 +23,17 @@ public class Nbtrain {
     public static void main(String[] args) throws IOException {
 
 
-        String modelFile = "model.txt";
-        String inputPath = "textcat/train";
+        if(args.length != 2){
+            System.out.println("Usage : model.txt textcat/train");
+            System.exit(1);
+        }
+
+
+        String modelFile = args[0];
+        String inputPath = args[1];
+
+//        String modelFile = "model.txt";
+//        String inputPath = "textcat/train";
 
         PrintWriter writer = new PrintWriter(modelFile);
         Path positiveDir = Paths.get(inputPath);

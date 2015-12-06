@@ -10,8 +10,16 @@ import java.nio.file.Paths;
 public class Nbtest {
     public static void main(String[] args) throws IOException {
 
-        String modelFile = "model.txt";
-        String testPath = "textcat/test";
+        if(args.length != 2){
+            System.out.println("Usage : model.txt textcat/dev");
+            System.exit(1);
+        }
+
+        String modelFile = args[0];
+        String testPath = args[1];
+
+//        String modelFile = "model.txt";
+//        String testPath = "textcat/dev";
 
         Predictor predictor = new Predictor(modelFile);
         Files.walkFileTree(Paths.get(testPath), predictor);

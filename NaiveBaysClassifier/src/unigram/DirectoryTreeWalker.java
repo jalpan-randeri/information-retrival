@@ -43,7 +43,8 @@ public class DirectoryTreeWalker extends SimpleFileVisitor<Path> {
             Arrays.stream(contents).forEach(term -> {
                 String key = term.toLowerCase().trim();
 
-                if(map.containsKey(key)){
+
+                if(!key.trim().isEmpty() && map.containsKey(key)){
                     map.put(key, map.get(key) + 1L);
                 } else {
                     map.put(key, 1L);

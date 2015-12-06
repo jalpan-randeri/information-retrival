@@ -3,7 +3,6 @@ import utils.Metrics;
 import utils.RelevantDocRetriever;
 import utils.RetrievedDocsRetriver;
 
-import javax.print.Doc;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -19,6 +18,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         String relevantPath = "cacm.rel";
+//        String retrievedPath = "query-results-bm25.txt";
         String retrievedPath = "query-results.txt";
         String inputPath = "query.txt";
 
@@ -50,48 +50,50 @@ public class Main {
         List<String> relevantDocs = RelevantDocRetriever.getDocumentsForQuery(queryId, relevantPath);
         List<Document> retrievedDocs = RetrievedDocsRetriver.getDocumentForQuery(query, retrievedPath);
 
-        List<Document> reorderList = reorder(retrievedDocs, relevantDocs);
+        List<Integer> idealScores = idealScores(retrievedDocs, relevantDocs);
 
 
         List<String> result = new ArrayList<>();
-        for(int rank = 1; rank <= 100; rank++) {
+        List<Double> precisionList = new ArrayList<>();
+
+        for(int rank = 1; rank <= retrievedDocs.size(); rank++) {
 
             String doc_id = retrievedDocs.get(rank - 1).getId();
             double doc_score = retrievedDocs.get(rank - 1).getScore();
 
             double precision = Metrics.precisionAtRank(relevantDocs, retrievedDocs, rank);
             double recall = Metrics.recallAtRank(relevantDocs, retrievedDocs, rank);
-
             int relevance = relevantDocs.contains(retrievedDocs.get(rank - 1).getId()) ? 1 : 0;
+            double ndcg = Metrics.ndcg(relevantDocs, retrievedDocs, rank, idealScores);
 
-            double ndcg = Metrics.ndcg(relevantDocs, retrievedDocs, rank, reorderList);
+            if(relevance == 1){
+                precisionList.add(precision);
+            }
 
             String line = String.format("%3d  %6s  %.10f    %.5f    %.5f      %1d      %.5f",
                                         rank, doc_id, doc_score, precision, recall, relevance, ndcg);
 
             result.add(line);
         }
+        double avgPrecision = precisionList.stream().mapToDouble(e -> e).average().getAsDouble();
+        System.out.println("AVG precision : "+avgPrecision);
 
         return result;
     }
 
-    private static List<Document> reorder(List<Document> retrievedDocs, List<String> relevantDocs) {
-        List<Document> orderList = new ArrayList<>();
+    private static List<Integer> idealScores(List<Document> retrievedDocs, List<String> relevantDocs) {
+        List<String> orderList = new ArrayList<>();
+        orderList.addAll(relevantDocs);
 
-        // add first relevant docs in relevant order
-        for(String relDoc : relevantDocs){
-            Optional<Document> doc = getDocumentWithID(relDoc, retrievedDocs);
-            if(doc.isPresent()){
-                orderList.add(doc.get());
+        for(int i = 0; i < retrievedDocs.size() && orderList.size() < 100; i++){
+            if(!orderList.contains(retrievedDocs.get(i).getId())){
+                orderList.add(retrievedDocs.get(i).getId());
             }
         }
 
-        // add remaining docs
-        retrievedDocs.stream()
-                .filter(d -> !orderList.contains(d))
-                .forEach(orderList::add);
-
-        return orderList;
+        return orderList.stream()
+                .map(doc -> relevantDocs.contains(doc) ? 1 : 0)
+                .collect(Collectors.toList());
     }
 
     private static Optional<Document> getDocumentWithID(String id, List<Document> list){

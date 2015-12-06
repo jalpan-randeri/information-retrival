@@ -55,10 +55,13 @@ public class Metrics {
 
 
     public static double ndcg(List<String> relevantDocs, List<Document> retrievedDocs,
-                              int rank, List<Document> orderedList){
+                              int rank, List<Integer> idealScores){
         retrievedDocs = retrievedDocs.subList(0, rank);
+        idealScores = idealScores.subList(0, rank);
+
+
         List<Integer> relevanceScores = getRelevanceScoreList(relevantDocs, retrievedDocs);
-        List<Integer> idealScores = getRelevanceScoreList(relevantDocs, orderedList);
+
 
         return discountedCumulativeGain(relevanceScores) / discountedCumulativeGain(idealScores);
     }

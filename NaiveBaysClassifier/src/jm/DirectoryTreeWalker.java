@@ -1,6 +1,7 @@
 package jm;
 
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.flexible.standard.QueryParserUtil;
 import org.apache.lucene.util.Version;
@@ -14,8 +15,10 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  *
@@ -27,6 +30,7 @@ public class DirectoryTreeWalker extends SimpleFileVisitor<Path> {
     private Map<String, Long> posTermFrequency;
     private Map<String, Long> negTermFrequency;
     private Map<String, Long> termFrequency;
+
     private QueryParser parser;
 
     public DirectoryTreeWalker() {
@@ -49,29 +53,26 @@ public class DirectoryTreeWalker extends SimpleFileVisitor<Path> {
 
 
 
+        Stream<String> stream = Files.lines(file);
+        List<String> lines = stream.collect(Collectors.toList());
+        stream.close();
 
-        Files.lines(file).forEach(line -> {
-
-            try {
-
+        try{
+            for(String line : lines){
                 String[] contents = stemmLine(line);
                 Arrays.stream(contents).forEach(term -> {
                     String key = term.toLowerCase().trim();
 
-                    if(map.containsKey(key)){
+                    if(!key.isEmpty() && map.containsKey(key)){
                         map.put(key, map.get(key) + 1L);
                     } else {
                         map.put(key, 1L);
                     }
                 });
-
-            } catch (Exception e) {
-                e.printStackTrace();
             }
-
-
-
-        });
+        } catch (Exception e){
+            e.printStackTrace();
+        }
 
         return FileVisitResult.CONTINUE;
     }
@@ -83,33 +84,28 @@ public class DirectoryTreeWalker extends SimpleFileVisitor<Path> {
     }
 
 
-
-
     private void pruneInvalidTerms(){
-        Map<String, Long> map = new HashMap<>(posTermFrequency);
 
+        posTermFrequency = posTermFrequency.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue() > 16)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        negTermFrequency = negTermFrequency.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue() > 16)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+
+        termFrequency = new HashMap<>(posTermFrequency);
         for(Map.Entry<String, Long> entry : negTermFrequency.entrySet()){
-            if(map.containsKey(entry.getKey())){
-                map.put(entry.getKey(), map.get(entry.getKey()) + entry.getValue());
+            if(termFrequency.containsKey(entry.getKey())){
+                termFrequency.put(entry.getKey(), termFrequency.get(entry.getKey()) + entry.getValue());
             }else{
-                map.put(entry.getKey(), entry.getValue());
+                termFrequency.put(entry.getKey(), entry.getValue());
             }
         }
 
-
-        termFrequency = map.entrySet()
-           .stream()
-           .filter(entry -> entry.getValue() >= 5)
-           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-
-        map.entrySet()
-            .stream()
-            .filter(entry -> entry.getValue() < 5)
-            .forEach(entry -> {
-                posTermFrequency.remove(entry.getKey());
-                negTermFrequency.remove(entry.getKey());
-            });
 
 
     }
@@ -130,3 +126,4 @@ public class DirectoryTreeWalker extends SimpleFileVisitor<Path> {
     }
 
 }
+

@@ -76,20 +76,18 @@ public class Predictor extends SimpleFileVisitor<Path> {
         for(String term : terms){
 
                 String value = probabilities.get(term);
-                if(value == null){
-                    // default
-
-                    yes = yes + Math.log(Nbtrain.LAMBDA * pOfYes);
-                    no = no + Math.log(Nbtrain.LAMBDA * pOfNo);
-                }else {
-                    String[] val = value.split(SEPARATOR);
-
-                    double termOverYes = Double.parseDouble(val[0]);
-                    double termOverNo = Double.parseDouble(val[1]);
-
-                    yes = yes + Math.log(termOverYes);
-                    no = no + Math.log(termOverNo);
+                if(value == null) {
+                    value = probabilities.get(stem.Nbtrain.LABEL_P_DEFAULT);
                 }
+
+                String[] val = value.split(SEPARATOR);
+
+                double termOverYes = Double.parseDouble(val[0]);
+                double termOverNo = Double.parseDouble(val[1]);
+
+                yes = yes + Math.log(termOverYes);
+                no = no + Math.log(termOverNo);
+
 
         }
         yes = yes + Math.log(pOfYes);
@@ -97,10 +95,10 @@ public class Predictor extends SimpleFileVisitor<Path> {
 
 
         if(yes == no){
-            System.out.println(file.toString()+ " -> Unknown ");
+//            System.out.println(file.toString()+ " -> Unknown ");
             unknown++;
         }else if(yes > no){
-            System.out.println(file.toString()+ " -> Yes " +yes);
+//            System.out.println(file.toString()+ " -> Yes " +yes);
 
             if(file.toString().contains("neg")){
                 falsePositive++;
@@ -109,7 +107,7 @@ public class Predictor extends SimpleFileVisitor<Path> {
             }
 
         }else{
-            System.out.println(file.toString()+ " -> No "+no);
+//            System.out.println(file.toString()+ " -> No "+no);
 
             if(file.toString().contains("pos")){
                 falseNegative++;

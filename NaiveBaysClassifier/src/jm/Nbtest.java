@@ -8,6 +8,9 @@ import java.nio.file.Paths;
  *
  */
 public class Nbtest {
+
+    private static double accuracy = 0;
+
     public static void main(String[] args) throws IOException {
 
         String modelFile = "jm-model.txt";
@@ -21,9 +24,20 @@ public class Nbtest {
         System.out.println("True Negative : "+predictor.getTrueNegative());
         System.out.println("True Positive : "+predictor.getTruePositive());
         System.out.println("Unknown : "+predictor.getUnknown());
+        System.out.println("Accuracy = "+accuracy(predictor));
+        accuracy = accuracy(predictor);
 
-        System.out.println("Accuracy = "+((double) predictor.getTrueNegative() + predictor.getTruePositive())
-                / (predictor.getTrueNegative() + predictor.getFalseNegative() + predictor.getFalsePositive() +
-                predictor.getTruePositive() +  predictor.getUnknown()));
+    }
+
+
+    private static double accuracy(Predictor p){
+        return (double) (p.getTrueNegative() + p.getTruePositive())
+                / (p.getTrueNegative() + p.getFalseNegative() + p.getFalsePositive() +
+                p.getTruePositive() +  p.getUnknown());
+    }
+
+
+    public double getAccuracy(){
+        return accuracy;
     }
 }

@@ -15,7 +15,17 @@ import java.util.Map;
 public class Nbtrain {
 
     public static final String LABEL_P_YES_NO = "p(yes)(no)";
-    public static final double LAMBDA = 0.7;
+    public static double LAMBDA = 0.1;
+    public static final String LABEL_P_DEFAULT = "p(default)";
+
+
+    public static void setLambda(double l){
+        LAMBDA = l;
+    }
+
+    public static double getLambda(){
+        return LAMBDA;
+    }
 
     public static void main(String[] args) throws IOException {
 
@@ -43,6 +53,11 @@ public class Nbtrain {
 
         writer.printf("%s,%.10f,%.10f%n", LABEL_P_YES_NO, pOfYes, pOfNo);
 
+        double defaultValueYes = 1.0 / (countOfYes + totalUniqueTermCount);
+        double defaultValueNo = 1.0 / (countOfNo +  totalUniqueTermCount);
+
+
+        writer.printf("%s,%.10f,%.10f%n", LABEL_P_DEFAULT,defaultValueYes, defaultValueNo);
 
         for(String term : termFreq.keySet()){
 
@@ -50,14 +65,18 @@ public class Nbtrain {
             long countOfTermForNo = TermUtils.getCountOfTermForNo(term, negTermFreq);
 
 
-            double termOverYes =  countOfTermForYes / (countOfYes + totalUniqueTermCount);
-            termOverYes = ((1 - LAMBDA) * termOverYes) / (LAMBDA * pOfYes);
+            double termOverYes =  (1 - LAMBDA) * (countOfTermForYes / (countOfYes + totalUniqueTermCount));
+            termOverYes = termOverYes + (LAMBDA * defaultValueYes);
 
 
-            double termOverNo =  (countOfTermForNo) / (countOfNo + totalUniqueTermCount);
-            termOverNo = ((1 - LAMBDA) * termOverNo) / (LAMBDA * pOfNo);
+
+            double termOverNo = (1 - LAMBDA) * (countOfTermForNo / (countOfNo + totalUniqueTermCount));
+            termOverNo = termOverNo + (LAMBDA * defaultValueNo);
+
 
             writer.printf("%s,%.10f,%.10f%n",term, termOverYes, termOverNo);
+
+//            System.out.printf("%s,%.10f,%.10f%n",term, termOverYes, termOverNo);
 
         }
 

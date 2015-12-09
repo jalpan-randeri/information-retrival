@@ -85,7 +85,8 @@ public class Main {
 
             result.add(line);
         }
-        double avgPre = precisionList.stream().mapToDouble(e -> e).average().getAsDouble();
+
+        double avgPre = precisionList.stream().mapToDouble(e -> e).sum() / relevantDocs.size();
         avgPrecision.add(avgPre);
 
         System.out.println("AVG precision : "+avgPrecision);
